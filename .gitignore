@@ -1,0 +1,9 @@
+# This repo is a curated snapshot — it should contain ONLY hand-authored
+# config. The real settings.json (with live tokens) lives in ~/.claude and
+# must never land here; settings.example.json is the redacted stand-in.
+settings.json
+.credentials.json
+
+# editor / OS noise
+*.swp
+.DS_Store

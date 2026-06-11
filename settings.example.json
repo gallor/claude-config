@@ -1,0 +1,103 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://ai.drwcloud.com",
+    "ANTHROPIC_AUTH_TOKEN": "<REDACTED>",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-7",
+    "ANTHROPIC_CUSTOM_HEADERS": "x-portkey-api-key: <REDACTED>\nx-portkey-config: <REDACTED>\nx-portkey-metadata: {\"service\": \"claude-code\", \"os\": \"linux\"}"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": "\ud83e\udd16[Mr. Claude](https://claud.ai/code) did this!"
+  },
+  "permissions": {
+    "allow": [
+      "Read(~/.claude/**)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr diff *)",
+      "Read(/home/pwong/git/chippy/tests/Transact/**)"
+    ],
+    "ask": [
+      "Edit(~/.claude/**)",
+      "Write(~/.claude/**)"
+    ]
+  },
+  "model": "claude-opus-4-8[1m]",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/update-tmux.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/update-tmux.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/update-tmux.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/update-tmux.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": false,
+    "frontend-design@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "fullstack-dev-skills@fullstack-dev-skills": false,
+    "skill-creator@chippy": true,
+    "crispy@chippy": true
+  },
+  "extraKnownMarketplaces": {
+    "fullstack-dev-skills": {
+      "source": {
+        "source": "github",
+        "repo": "jeffallan/claude-skills"
+      }
+    },
+    "chippy": {
+      "source": {
+        "source": "git",
+        "url": "git@git.drwholdings.com:Chippy/core-python-claude-skills.git",
+        "path": "/home/pwong/git/core-python-claude-skills"
+      }
+    }
+  },
+  "syntaxHighlightingDisabled": false,
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark"
+}

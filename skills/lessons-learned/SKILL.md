@@ -2,7 +2,7 @@
 name: lessons-learned
 description: Evolve the repository CLAUDE.md with lessons learned from merged PRs, debugging sessions, and design decisions
 user-invocable: true
-argument-hint: "[pr numbers | 'scan' [N] | 'verify']"
+argument-hint: "[--ci] [pr numbers | 'scan' [N] | 'verify']"
 allowed-tools: ["Bash", "Glob", "Grep", "Read", "Edit", "Task", "WebFetch"]
 ---
 
@@ -19,8 +19,52 @@ Update the current repository's `CLAUDE.md` with design decisions, performance f
 | *(empty)* | Extract lessons from the current session's work |
 | PR references (`615`, `pr 580-616`, `scan`, `scan 30`) | Read specified PRs (or scan recent merged PRs) for undocumented design decisions |
 | `verify` | Audit all existing CLAUDE.md claims against actual source code; report as a table |
+| `--ci {pr}` | CI mode: headless run on a merged PR reviewed by kaa (see CI Mode below) |
 
 For `verify` mode: check each claim against source, report findings, and fix any inaccuracies. Skip the drafting and writing steps below.
+
+## CI Mode (`--ci`)
+
+Invoked headlessly by kaa after a PR merges. Applies a **higher bar** than interactive mode — no human in the loop to filter proposals, so the skill must be conservative.
+
+### Signal sources
+
+Process **both** of these, then draft entries once:
+
+1. **Human replies to kaa's inline comments** — where the human supplied context kaa couldn't have known from the diff/repo alone
+2. **Human-human discussions** (conversation comments) — only where the discussed code was **unchanged at merge** (design explanation, not bug fix)
+
+### Filter chain (all must pass to be CLAUDE.md-worthy)
+
+- The human supplied context **not present** in the diff or repo (not a hallucination correction — kaa misreading code that was right there)
+- The claim is **falsifiable**: "we don't validate here because X service guarantees it upstream" ✅ — "this is fine" ❌ — style preferences ❌
+- kaa's original finding was **locally valid** — it couldn't have known without the supplied context
+- The entry would **prevent a different engineer** from making the same wrong assumption
+
+### Missed bugs (separate signal)
+
+If humans caught a bug in their discussion that kaa missed entirely, do **not** write it to CLAUDE.md. Flag it separately in the PR comment as "I missed: [description]" for manual action.
+
+### Writing
+
+- Process **all** signals first, then write once
+- If nothing passes the filter: post "bar not met — nothing written" on the PR and exit without touching CLAUDE.md
+- If entries are drafted: run compaction alongside the write (see step 3), commit directly to `main`, post a PR comment with what was written + commit link + any missed bugs flagged
+- Commit message: `lessons: update CLAUDE.md from {repo}#{pr}`
+
+### Post PR comment format
+
+```
+## Kaa learned from #{pr}
+
+### Added to CLAUDE.md
+- {section}: {one-line summary} ([commit](URL))
+
+### Flagged (not written — needs manual action)
+- Missed bug: {description}
+```
+
+If nothing was written and nothing flagged, post: "Reviewed feedback on #{pr} — bar not met, nothing written."
 
 ## Workflow
 
@@ -85,4 +129,18 @@ In both cases, the root `CLAUDE.md` retains a bullet-point summary of key constr
 
 ### 4. Present and write
 
-Show drafted entries (and any compaction proposals) to the user grouped by section, noting verification results. Apply approved changes to CLAUDE.md.
+**Interactive mode:** Show drafted entries (and any compaction proposals) to the user grouped by section, noting verification results. Apply approved changes to CLAUDE.md.
+
+**CI mode (`--ci`):** Skip presentation. Apply all drafted entries directly. Run compaction alongside. Commit to `main`:
+```bash
+source ~/.claude/skills/lib/gh-env.sh
+git config user.name "srv-chippy"
+git config user.email "srv_chippy@drwholdings.com"
+git add CLAUDE.md
+git commit -m "lessons: update CLAUDE.md from {repo}#{pr}"
+git push origin main
+```
+Then post the PR comment (see CI Mode format above) using:
+```bash
+export GH_HOST && gh api repos/{repo}/issues/{pr}/comments --method POST -f body="..."
+```

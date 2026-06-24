@@ -146,8 +146,11 @@ def validate_comments(diff_map, comments):
         side = comment.get("side", "RIGHT")
         start_side = comment.get("start_side", side)
 
-        # Normalize path — strip leading / or ./
-        path = path.lstrip("./")
+        # Normalize path — strip leading ./ or / prefix only (not individual chars)
+        if path.startswith("./"):
+            path = path[2:]
+        elif path.startswith("/"):
+            path = path[1:]
 
         if path not in diff_map:
             # Try without leading directory components that might differ

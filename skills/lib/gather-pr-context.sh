@@ -11,6 +11,7 @@
 #   diff.patch                   - Full PR diff
 #   inline.json                  - Existing inline review comments
 #   conversation.json            - Existing conversation comments
+#   reviews.json                 - Prior review summaries (body + author + state)
 #   existing-comment-summary.json - {file:line: "user: summary"} for dedup
 #   repo.txt                     - owner/repo identifier
 #
@@ -38,7 +39,7 @@ REPO_FLAG="--repo $REPO"
 
 # --- Content-addressed caching ---
 CACHE_ROOT="/tmp/pr-reviews"
-EXPECTED_FILES="metadata.json diff.patch inline.json conversation.json repo.txt existing-comment-summary.json"
+EXPECTED_FILES="metadata.json diff.patch inline.json conversation.json reviews.json repo.txt existing-comment-summary.json"
 
 if [ -z "$OUTDIR" ]; then
   # Get head SHA for cache key
@@ -85,6 +86,10 @@ gh api "repos/${REPO}/pulls/${PR}/comments" $GH_HOST_FLAG \
 gh api "repos/${REPO}/issues/${PR}/comments" $GH_HOST_FLAG \
     --jq '[.[] | {body: .body, user: .user.login}]' \
     > "$OUTDIR/conversation.json" 2>/dev/null &
+
+gh api "repos/${REPO}/pulls/${PR}/reviews" $GH_HOST_FLAG \
+    --jq '[.[] | {user: .user.login, state: .state, body: .body, submitted_at: .submitted_at}]' \
+    > "$OUTDIR/reviews.json" 2>/dev/null &
 
 wait
 

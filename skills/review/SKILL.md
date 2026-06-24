@@ -41,6 +41,8 @@ Extract from `$ARGUMENTS`: aspects (known keywords + `all`), a number reference 
 | `all 86` | PR #86 | cwd | all applicable |
 | `code security Chip/chippy#99` | PR #99 | Chip/chippy | `code`, `security` |
 
+**CI mode:** if `--ci` is present in `$ARGUMENTS`, skip the preview step (step 7) and auto-post all valid comments immediately without asking for confirmation.
+
 ### 2. Detect type and gather context
 
 **Local diff mode** (no number): run `git diff` variants for changed files, stats, full diff. Proceed to step 3.
@@ -77,11 +79,11 @@ Cached at `/tmp/pr-reviews/{repo_slug}-{pr}-{head_sha}/`; self-invalidates on ne
 
 **Lazy cache pruning:** At the start of every `/review` invocation run `bash ~/.claude/skills/lib/prune-pr-cache.sh 2>/dev/null`. Also run `bash ~/.claude/skills/lib/prune-pr-cache.sh {repo} {pr}` after posting an APPROVE review. The user can manually prune with `/review prune`.
 
-**Linked issue context:** After reading `metadata.json`, scan the PR body for `Resolves #N`, `Fixes #N`, `Closes #N`, `Related to #N`, bare `#N`. If found:
+**Linked issue context (MANDATORY):** After reading `metadata.json`, scan the PR body for `Resolves #N`, `Fixes #N`, `Closes #N`, `Related to #N`, bare `#N`. If found, **always** fetch:
 ```bash
 ISSUE_CONTEXT_DIR=$(~/.claude/skills/lib/gather-issue-context.sh {issue_number} {repo})
 ```
-Pass `$ISSUE_CONTEXT_DIR/metadata.json` to agents as `issue_context`. A PR can be technically correct yet solve the wrong problem; agents that only see the diff cannot catch this.
+Pass `$ISSUE_CONTEXT_DIR/metadata.json` to agents as `issue_context`. This is not optional — a PR that is technically correct but solves the wrong problem (wrong approach, adds a new code path when the fix should be integrated into an existing one) is a more serious failure than a code quality nit. Skipping this check is what causes approach-fit regressions to slip through.
 
 **Cross-repo PR context:** Scan the PR body for `Depends on <url>`, `Requires <url>`, `<owner>/<repo>#<number>`, or bare GHE `/pull/<N>` URLs. For each:
 ```bash
@@ -156,7 +158,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 | `tests` | Test files changed |
 | `docs` | `docs/`, `*.md`, or `newsfragments/` changed |
 | `security` | Auth/DB/upload/API code changed, or `.rs` files with `unsafe` blocks |
-| `compat` | Public methods/classes removed/renamed/signatures changed; deleted files or removed exports; PR title/body mentions "remove", "deprecate", "breaking" |
+| `compat` | Public methods/classes removed/renamed/signatures changed; new **required** parameters added to existing functions; deleted files or removed exports; PR title/body mentions "remove", "deprecate", "breaking" |
 | `simplify` | 3+ new classes/abstractions, or >200 net lines added to a single file |
 | `perf` | Code inside loops, known hot paths, or serialization/deserialization changed; files with benchmark/profile annotations touched |
 
@@ -211,6 +213,8 @@ Omit Approach Assessment if no linked issue was found.
 ### 7. Preview & post inline comments (PR mode only)
 
 Skip for local diff reviews.
+
+**CI mode** (`--ci` in arguments): skip the preview entirely. Validate line numbers, then immediately post all valid comments. Do not ask for confirmation.
 
 Generate numbered inline comments grouped by file. For concrete code changes, use suggestion syntax (renders "Apply suggestion" button):
 
@@ -292,6 +296,7 @@ Each agent prompt must include: domain focus, findings formatted as `file:line` 
 - **Valid line targeting**: "Read `valid-lines.json` before proposing inline comments. ONLY target lines listed there. Format: `{file: [[start, end], ...]}`."
 - **Existing comment dedup**: "Read `existing-comment-summary.json`. Do not re-raise unless existing feedback is incorrect. Format: `{file:line: 'user: summary'}`."
 - **Dependency context** (if fetched): "Read `$DEP_DIR/metadata.json`. Use title/body to understand the dependency; do not review its code."
-- **Approach fit** (if issue context fetched): Pass `$ISSUE_CONTEXT_DIR/metadata.json` to `@code-reviewer`. Instruct: Does the implementation address the root problem? Is complexity proportionate? Are there simpler structural alternatives? Surface as a top-level finding if the answer is no.
+- **Approach fit** (always required when issue context exists): Pass `$ISSUE_CONTEXT_DIR/metadata.json` to `@code-reviewer`. Instruct: Does the implementation address the root problem as stated in the issue? Is the approach proportionate — or does it add a new code path where the fix should be integrated into an existing one? Are there simpler structural alternatives? Surface as a top-level `[critical]` finding if the PR solves the wrong problem or takes a divergent approach from what the issue describes.
+- **New required parameters**: "When the diff adds a new required parameter to an existing function or method (i.e., no default value), search the **full codebase** for all call sites of that function — not just the diff. Use `rg` to find every caller. If any call site outside the diff is missing the argument, flag it as `[critical]`."
 
 Agents must not duplicate existing feedback, should build on prior discussions, and note if feedback appears addressed in the current diff.

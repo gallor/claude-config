@@ -64,7 +64,7 @@ If humans caught a bug in their discussion that kaa missed entirely, do **not** 
 - Missed bug: {description}
 ```
 
-If nothing was written and nothing flagged, post: "Reviewed feedback on #{pr} — bar not met, nothing written."
+If nothing was written and nothing flagged, post: "🐍 **Kaa: no lessons learned** — no repo-specific context worth capturing in `CLAUDE.md`."
 
 ## Workflow
 

@@ -96,7 +96,13 @@ For each finding, draft a FAQ-style entry:
 - **Header**: A question someone would actually ask when looking at the code
 - **Body**: 2-4 sentences covering the decision, the rationale, and what not to do. Include PR reference.
 
-Place in the appropriate section: "Before You Optimize", "Before You Refactor", or "Before You Add a Feature". Create these sections if the repo doesn't have them.
+**Choosing the target section:**
+
+First, read the existing `CLAUDE.md` structure:
+- If it already has "Before You Optimize", "Before You Refactor", or "Before You Add a Feature" sections (FAQ-style design context), place entries in the appropriate one.
+- If the file is a different format (procedural instructions, workflow docs, etc.), always place entries in a `## Lessons from Code Review` section at the end of the file. Create it if it doesn't exist. This keeps kaa's additions clearly distinct from the existing document style.
+
+Never try to match or blend into a non-FAQ format — a distinct section is always cleaner than a forced fit.
 
 **Before including an entry, verify it:**
 - Read the actual source code; do not trust PR descriptions or agent analysis at face value

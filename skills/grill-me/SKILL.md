@@ -10,3 +10,5 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 Ask the questions one at a time.
 
 If a question can be answered by exploring the codebase or reading documentation (CLAUDE.md, README, design docs, existing skill/agent files), do that first and present the finding as context rather than asking the user. Only ask the user when the answer requires a decision or preference that can't be derived from existing material.
+
+When a branch of the design tree is growing complex — multiple layers, new abstractions, optional parameters, "future-proofing" — invoke `/kiss` to tier the abstraction before committing to it. Present the `/kiss` verdict as context for the next question rather than asking the user to evaluate complexity themselves.

@@ -287,6 +287,13 @@ Prefer inline comments; use review `body` for summary. Fall back to `gh pr comme
 
 Each agent prompt must include: domain focus, findings formatted as `file:line` with severity (`critical`/`issue`/`suggestion`/`question`).
 
+**Claims vs Hypotheses discipline (mandatory):** Every finding is a Hypothesis until verified against the actual code. Before reporting a finding:
+- Verify it by reading the relevant file/call sites — the diff is not the whole picture
+- "This is dead code" → grep for callers first; "this is a bug" → construct the input that triggers it
+- Label uncertain findings explicitly: "This *may* cause X if Y" not "This causes X"
+- Scale verification to severity: nits don't need proof, `[critical]` findings do
+- Never report findings you haven't verified — wrong comments waste the author's time
+
 **Diff interpretation:** Only claim code was *removed* if it appears as a `-` prefixed line. Unchanged lines between hunks are still present. Verify the `-` prefix before claiming deletion.
 
 **Local diff mode:** Include the full diff inline.

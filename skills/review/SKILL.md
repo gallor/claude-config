@@ -294,6 +294,16 @@ Each agent prompt must include: domain focus, findings formatted as `file:line` 
 - Scale verification to severity: nits don't need proof, `[critical]` findings do
 - Never report findings you haven't verified — wrong comments waste the author's time
 
+**Bug classification and confidence gate:** When you identify a potential correctness concern, classify your confidence before deciding how to surface it:
+
+| Confidence | Signals | Action |
+|-----------|---------|--------|
+| **High** | Can construct the triggering input directly from the diff; syntactic pattern (unchecked return, unguarded shared state, obvious off-by-one, missing bounds check) | Post as `[critical]`/`[issue]` immediately — no kpop needed |
+| **Medium** | Plausible but requires tracing call sites, checking invariants, or understanding caller guarantees | Run inline kpop (5 tool cap) to confirm before surfacing |
+| **Low** | Something feels wrong but you can't articulate the triggering condition | Post as `[question]` + suggest `/kpop <symptom>` |
+
+High-confidence bugs (syntactic, obvious) do not need falsification — posting them directly is correct and efficient. Medium-confidence bugs (semantic, requires tracing) benefit most from the inline kpop cycle. Low-confidence suspicions should not be posted as bugs — escalate to the user instead.
+
 **Diff interpretation:** Only claim code was *removed* if it appears as a `-` prefixed line. Unchanged lines between hunks are still present. Verify the `-` prefix before claiming deletion.
 
 **Local diff mode:** Include the full diff inline.

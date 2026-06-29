@@ -38,11 +38,14 @@ def ensure_newline():
 
 
 def flush_tool():
-    global last_tool, last_tool_count
+    global last_tool, last_tool_count, at_line_start
     if last_tool:
-        emoji = EMOJI.get(last_tool, "🔧")
-        suffix = f" ×{last_tool_count}" if last_tool_count > 1 else ""
-        print(f"  {emoji} {last_tool}{suffix}", flush=True)
+        if last_tool_count > 1:
+            print(f" ×{last_tool_count}", flush=True)
+            at_line_start = True
+        else:
+            print(flush=True)  # close the line if no dupes
+            at_line_start = True
         last_tool = None
         last_tool_count = 0
 
@@ -86,8 +89,13 @@ while True:
             open_group(name)
             if name == last_tool:
                 last_tool_count += 1
+                print(".", end="", flush=True)
+                at_line_start = False
             else:
                 flush_tool()
+                emoji = EMOJI.get(name, "🔧")
+                print(f"  {emoji} {name}", end="", flush=True)
+                at_line_start = False
                 last_tool = name
                 last_tool_count = 1
         elif btype == "text":

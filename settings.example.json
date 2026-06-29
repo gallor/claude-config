@@ -2,21 +2,32 @@
   "env": {
     "ANTHROPIC_BASE_URL": "https://ai.drwcloud.com",
     "ANTHROPIC_AUTH_TOKEN": "<REDACTED>",
+    "ANTHROPIC_CUSTOM_HEADERS": "x-portkey-api-key: <REDACTED>\nx-portkey-config: pc-bedroc-55aa53\nx-portkey-metadata: {\"service\": \"claude-code\", \"os\": \"linux\"}",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-7",
-    "ANTHROPIC_CUSTOM_HEADERS": "x-portkey-api-key: <REDACTED>\nx-portkey-config: <REDACTED>\nx-portkey-metadata: {\"service\": \"claude-code\", \"os\": \"linux\"}"
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-8"
   },
-  "attribution": {
-    "commit": "",
-    "pr": "\ud83e\udd16[Mr. Claude](https://claud.ai/code) did this!"
+  "includeCoAuthoredBy": false,
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/scripts/worktree-create.sh"
+          }
+        ]
+      }
+    ]
   },
   "permissions": {
     "allow": [
+      "Bash(tail:*)",
       "Read(~/.claude/**)",
+      "Bash(gh issue view *)",
       "Bash(gh pr view *)",
       "Bash(gh pr diff *)",
-      "Read(/home/pwong/git/chippy/tests/Transact/**)"
+      "Bash(rg *)"
     ],
     "ask": [
       "Edit(~/.claude/**)",
@@ -24,61 +35,22 @@
     ]
   },
   "model": "claude-opus-4-8[1m]",
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/update-tmux.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/update-tmux.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/update-tmux.sh"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/update-tmux.sh"
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
-    "command": "~/.claude/statusline-command.sh"
+    "command": "~/.claude/scripts/statusline-command.sh"
   },
   "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": false,
     "frontend-design@claude-plugins-official": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "fullstack-dev-skills@fullstack-dev-skills": false,
+    "fullstack-dev-skills@fullstack-dev-skills": true,
     "skill-creator@chippy": true,
-    "crispy@chippy": true
+    "git-ops@chippy": true,
+    "kpop@chippy": true,
+    "python-env@chippy": true,
+    "crispy@chippy": true,
+    "code-review@claude-plugins-official": false,
+    "cp-review@chippy": true,
+    "pyright-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "fullstack-dev-skills": {
@@ -90,14 +62,13 @@
     "chippy": {
       "source": {
         "source": "git",
-        "url": "git@git.drwholdings.com:Chippy/core-python-claude-skills.git",
-        "path": "/home/pwong/git/core-python-claude-skills"
+        "url": "git@git.drwholdings.com:Chippy/core-python-claude-skills.git"
       }
     }
   },
   "syntaxHighlightingDisabled": false,
   "effortLevel": "high",
   "tui": "fullscreen",
-  "skipDangerousModePermissionPrompt": true,
-  "theme": "dark"
+  "theme": "dark",
+  "editorMode": "vim"
 }

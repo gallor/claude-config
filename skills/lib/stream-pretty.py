@@ -24,18 +24,28 @@ EMOJI = {
 }
 
 in_group = False
+at_line_start = True  # track whether we need a newline before GHA commands
 
 
-def open_group():
+def ensure_newline():
+    global at_line_start
+    if not at_line_start:
+        print(flush=True)
+        at_line_start = True
+
+
+def open_group(name: str):
     global in_group
     if not in_group:
-        print("::group::🛠️ Tool calls", flush=True)
+        ensure_newline()
+        print(f"::group::🛠️ Tool calls ({name})", flush=True)
         in_group = True
 
 
 def close_group():
     global in_group
     if in_group:
+        ensure_newline()
         print("::endgroup::", flush=True)
         in_group = False
 
@@ -57,12 +67,14 @@ for line in sys.stdin:
         if btype == "tool_use":
             name = block.get("name", "unknown")
             emoji = EMOJI.get(name, "🔧")
-            open_group()
-            print(f"{emoji} {name}", flush=True)
+            open_group(name)
+            print(f"  {emoji} {name}", flush=True)
+            at_line_start = True
         elif btype == "text":
             text = block.get("text", "")
             if text.strip():
                 close_group()
                 print(text, end="", flush=True)
+                at_line_start = text.endswith("\n")
 
 close_group()

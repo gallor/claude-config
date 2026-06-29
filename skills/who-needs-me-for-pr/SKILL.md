@@ -78,12 +78,22 @@ The script outputs one JSON object per line with these fields:
 
 ## 6. Classify each PR
 
+### srv-chippy = my review
+
+`srv-chippy` is the bot account that posts findings from my `/review` skill. Treat any `recent_review_comments` entries authored by `srv-chippy` as equivalent to a personal review from me. When classifying:
+
+- If `srv-chippy` has entries in `recent_review_comments` AND `my_review_state` is null, this is **not** a first review — srv-chippy already covered it.
+- Downgrade "First review needed" → **Waiting on author** unless there are author readiness signals (re-requested, replied, commit references review).
+- A PR with srv-chippy findings + readiness signals → **Re-review** territory (same as if I had reviewed it personally).
+
+### Categories
+
 Assign each PR to one of three categories. The key question is: "Does this require my action?"
 
 | Category | Condition |
 |----------|-----------|
-| **Needs my review** | Ball is with me. Any of: (a) no review from me yet, PR is not draft/blocked; (b) `source == "requested"` (active review request); (c) I previously reviewed AND `commits_since_review > 0` AND author signaled readiness (see below). Sorted by last ping descending. |
-| **Waiting on author** | I left feedback and any of: (a) `commits_since_review == 0`; (b) `commits_since_review > 0` but no readiness signal (pushed commits but author hasn't engaged with review feedback yet) |
+| **Needs my review** | Ball is with me. Any of: (a) no review from me or srv-chippy yet, PR is not draft/blocked; (b) `source == "requested"` (active review request); (c) I (or srv-chippy) previously reviewed AND `commits_since_review > 0` AND author signaled readiness (see below). Sorted by last ping descending. |
+| **Waiting on author** | I (or srv-chippy) left feedback and any of: (a) `commits_since_review == 0`; (b) `commits_since_review > 0` but no readiness signal |
 | **Blocked externally** | PR is draft, OR waiting on a third party, infra dependency, or other external blocker |
 
 ### Readiness signals (priority order)

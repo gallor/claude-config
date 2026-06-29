@@ -320,11 +320,14 @@ High-confidence bugs (syntactic, obvious) do not need falsification — posting 
 **PR mode:** Pass `$CONTEXT_DIR`; instruct agent to read `diff.patch`, `metadata.json`, `inline.json`, `conversation.json`. Also instruct:
 
 - **Valid line targeting**: "Read `valid-lines.json` before proposing inline comments. ONLY target lines listed there. Format: `{file: [[start, end], ...]}`."
-- **Existing comment dedup**: "Read `existing-comment-summary.json` before finalising any finding. Format: `{file:line: 'user: summary — url'}`. For every finding you plan to post, check whether `existing-comment-summary.json` has a prior `srv-chippy` entry for the same file:line or nearby region. If it does:
-  1. Read the prior comment summary carefully.
-  2. Ask: is my finding *compatible* with the prior one, *reinforcing* it, or *contradicting* it?
-  3. If compatible or reinforcing: proceed normally.
-  4. If contradicting: resolve the contradiction before posting — do not post both sides. Determine which is correct by checking the specific factual constraint each relies on (callers, declared types, test coverage, CLAUDE.md invariants). Then either: (a) dismiss your finding if the prior one holds, or (b) post a reversal opened with '↩️ Reversing [permalink]. Reason: [specific factual constraint the prior finding missed].' The permalink is the `— https://...` suffix in each entry.
+- **Existing comment dedup**: "Read `existing-comment-summary.json` before finalising any finding. Format: `{file:line: 'user: summary — url'}`. For every finding you plan to post, check for prior `srv-chippy` comments in two ways:
+  1. **By file:line key** — exact match on the same location.
+  2. **By symbol name** — search the comment *values* for the symbol name your finding concerns (function name, class name, parameter name). A `.py` and its `.pyi` stub discuss the same symbols; a prior comment on `__init__.py:dumps` is prior art for a finding on `__init__.pyi:dumps` even though the file:line keys differ.
+
+  If a prior `srv-chippy` comment touches the same symbol:
+  - Ask: is my finding *compatible*, *reinforcing*, or *contradicting*?
+  - If compatible or reinforcing: proceed normally.
+  - If contradicting: resolve before posting — do not post both sides. Determine which is correct by checking the specific factual constraint each relies on (callers, declared types, test coverage, CLAUDE.md invariants). Then either: (a) dismiss your finding if the prior one holds, or (b) post a reversal opened with '↩️ Reversing [permalink]. Reason: [specific factual constraint the prior finding missed].' The permalink is the `— https://...` suffix in each entry.
 
   Never post a finding that contradicts a prior `srv-chippy` comment without resolving the contradiction first. Unresolved contradictions force the author to do the reasoning you should have done."
 - **Prior reviews**: "Read `reviews.json`. If it contains prior reviews by `srv-chippy`, this is a re-review — frame the review body as a follow-up (e.g. 'Following up on my earlier review...', 'The previous concerns about X have been addressed...', 'One remaining issue...'). Do not re-summarize the whole PR as if reviewing for the first time."

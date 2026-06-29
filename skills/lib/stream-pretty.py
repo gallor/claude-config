@@ -6,7 +6,6 @@ so they collapse in the Actions UI, letting the final text output stand out.
 """
 import json
 import sys
-from typing import Optional
 
 EMOJI = {
     "Bash": "$",
@@ -26,8 +25,6 @@ EMOJI = {
 
 in_group = False
 at_line_start = True  # track whether we need a newline before GHA commands
-last_tool: Optional[str] = None
-last_tool_count = 0
 
 
 def ensure_newline():
@@ -37,29 +34,17 @@ def ensure_newline():
         at_line_start = True
 
 
-def flush_tool():
-    global last_tool, last_tool_count, at_line_start
-    if last_tool:
-        if last_tool_count > 1:
-            # dots were printed without newline; close with count
-            print(f" ×{last_tool_count}", flush=True)
-            at_line_start = True
-        last_tool = None
-        last_tool_count = 0
-
-
-def open_group(name: str):
+def open_group():
     global in_group
     if not in_group:
         ensure_newline()
-        print(f"::group::🛠️ Tool calls", flush=True)
+        print("::group::🛠️ Tool calls", flush=True)
         in_group = True
 
 
 def close_group():
     global in_group
     if in_group:
-        flush_tool()
         ensure_newline()
         print("::endgroup::", flush=True)
         in_group = False
@@ -81,18 +66,10 @@ for line in sys.stdin:
         btype = block.get("type")
         if btype == "tool_use":
             name = block.get("name", "unknown")
-            open_group(name)
-            if name == last_tool:
-                last_tool_count += 1
-                print(".", end="", flush=True)
-                at_line_start = False
-            else:
-                flush_tool()
-                emoji = EMOJI.get(name, "🔧")
-                print(f"  {emoji} {name}", flush=True)
-                at_line_start = True
-                last_tool = name
-                last_tool_count = 1
+            emoji = EMOJI.get(name, "🔧")
+            open_group()
+            print(f"  {emoji} {name}", flush=True)
+            at_line_start = True
         elif btype == "text":
             text = block.get("text", "")
             if text.strip():

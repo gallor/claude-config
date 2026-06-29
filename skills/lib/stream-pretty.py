@@ -41,10 +41,8 @@ def flush_tool():
     global last_tool, last_tool_count, at_line_start
     if last_tool:
         if last_tool_count > 1:
+            # dots were printed without newline; close with count
             print(f" ×{last_tool_count}", flush=True)
-            at_line_start = True
-        else:
-            print(flush=True)  # close the line if no dupes
             at_line_start = True
         last_tool = None
         last_tool_count = 0
@@ -91,8 +89,8 @@ for line in sys.stdin:
             else:
                 flush_tool()
                 emoji = EMOJI.get(name, "🔧")
-                print(f"  {emoji} {name}", end="", flush=True)
-                at_line_start = False
+                print(f"  {emoji} {name}", flush=True)
+                at_line_start = True
                 last_tool = name
                 last_tool_count = 1
         elif btype == "text":

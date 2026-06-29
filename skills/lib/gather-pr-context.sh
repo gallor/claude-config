@@ -97,7 +97,7 @@ wait
 # Maps "file:line" -> "user: first 80 chars of body" for agent dedup
 jq '[.[] | select(.line != null) | {
   key: (.path + ":" + (.line | tostring)),
-  value: (.user + ": " + (.body | gsub("\n"; " ") | .[0:80]))
+  value: (.user + ": " + (.body | gsub("\n"; " ") | .[0:80]) + " — " + .html_url)
 }] | from_entries' "$OUTDIR/inline.json" > "$OUTDIR/existing-comment-summary.json" 2>/dev/null || echo '{}' > "$OUTDIR/existing-comment-summary.json"
 
 # Generate valid-lines.json from the diff (for agent line targeting)

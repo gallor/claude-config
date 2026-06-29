@@ -3,7 +3,7 @@
 ## Environment
 
 - Use micromamba to manage conda environments: `micromamba run -n $CONDA_ENV <command>`
-  - Default environment: `cp314`
+  - Default environment: `chippy-dev`
 
 ## Formatting (ruff)
 

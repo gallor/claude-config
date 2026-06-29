@@ -4,6 +4,7 @@
 - Use `gh` for GitHub interactions (PRs, issues, repos, etc.). See `rules/github-issues.md` for issue creation conventions and the `/sub-issue` skill.
 - When the user provides a `git.drwholdings.com` link, always use `gh` to access that information (PRs, issues, etc.).
 - Use `jq` for JSON processing.
+- Use `yq` for YAML processing
 - Use `bat` for file viewing/paging.
 
 ## Version Specifiers
@@ -12,4 +13,4 @@
 
 ## Local Environment
 
-- Local git repositories are stored in `~/git/`.
+- Local git repositories are stored in `~/code/`.

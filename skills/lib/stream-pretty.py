@@ -9,7 +9,7 @@ import sys
 from typing import Optional
 
 EMOJI = {
-    "Bash": "🔨",
+    "Bash": "$",
     "Read": "📖",
     "Edit": "✏️",
     "Write": "✏️",

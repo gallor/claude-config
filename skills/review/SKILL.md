@@ -170,6 +170,15 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 
 ### 6. Triage and aggregate
 
+**Contradiction detection (before anything else):** Scan all agent findings for pairs that touch the same symbol, file:line region, or design decision with opposing recommendations (e.g. "tighten this signature" vs "keep `*args, **kwargs`", "remove this parameter" vs "this parameter is required"). For each contradiction:
+
+1. Identify the constraint each agent was reasoning from
+2. Determine which constraint is binding — a factual constraint (existing callers, declared types, test coverage) takes precedence over a stylistic preference (cleaner API surface, stricter typing philosophy)
+3. Resolve to a single recommendation; dismiss the weaker finding with an explanation
+4. Never post both sides of a contradiction — a reviewer who flip-flops in the same review session erodes trust
+
+The contradiction from typemaster#821 is the canonical example: one agent recommended tightening `def dumps(obj: object) -> bytes` (stylistic preference), another found that `Packer.pack` declares `bool_dumphash`/`int_rlvl` in `cybs.pyi` and callers use them (factual constraint). The factual constraint wins; the tightening recommendation should have been dismissed before posting.
+
 For each finding, check: (1) contradicts `CLAUDE.md` invariant? (2) proposes reverting an explicit choice? (3) orchestrator has session context the agent lacked? (4) ignores a structural invariant? Read relevant code to verify if needed.
 
 **Approach fit (when linked issue fetched):** Is the PR's strategy proportionate to the root problem? Does it introduce ongoing maintenance burden (pattern lists, heuristics, state machines) for something solvable structurally? Surface as a top-level finding if yes.

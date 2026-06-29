@@ -67,10 +67,7 @@ def close_group():
         in_group = False
 
 
-while True:
-    line = sys.stdin.readline()
-    if not line:
-        break
+for line in sys.stdin:
     line = line.strip()
     if not line:
         continue

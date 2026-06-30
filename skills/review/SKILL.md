@@ -182,6 +182,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 2. Determine which constraint is binding — a factual constraint (existing callers, declared types, test coverage) takes precedence over a stylistic preference (cleaner API surface, stricter typing philosophy)
 3. Resolve to a single recommendation; dismiss the weaker finding with an explanation
 4. Never post both sides of a contradiction — a reviewer who flip-flops in the same review session erodes trust
+5. **Severity disagreements** (two agents flag the same issue at different severities): take the more severe rating. The author can push back during preview if they disagree.
 
 Canonical example: one agent recommends removing `*args, **kwargs` from a public function for a cleaner API surface (stylistic preference); another finds existing callers passing those kwargs (factual constraint). The factual constraint wins; the tightening recommendation should be dismissed before posting.
 

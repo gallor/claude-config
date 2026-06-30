@@ -347,7 +347,9 @@ High-confidence bugs (syntactic, obvious) do not need falsification — posting 
 
 Agents must not duplicate existing feedback, should build on prior discussions, and note if feedback appears addressed in the current diff.
 
-### 7b. Hot path confirmation (after posting)
+### 7b. Hot path confirmation (after posting, interactive mode only)
+
+Skip entirely in `--ci` mode — no user is present to confirm.
 
 After posting the review, check if `/tmp/claude_proposed_hotpaths.json` exists and is non-empty. If so, present a confirmation table:
 

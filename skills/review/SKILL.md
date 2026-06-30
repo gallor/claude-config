@@ -26,7 +26,6 @@ Review code changes using specialized agents, or summarize issue discussions.
 | `perf` | `@performance-college-sprinter` |
 | `docs` | `@technical-doc-writer` |
 | `compat` | `@migration-specialist` |
-| `rust` | `@code-reviewer` (Rust mode) |
 
 ## Workflow
 
@@ -178,9 +177,21 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 | `compat` | A `removal` or `deprecated` newsfragment exists for this PR; OR the diff touches a symbol that is in `__all__` (if defined); OR the diff touches a non-underscored symbol in a non-underscored module that has no `__all__`; OR a new **required** parameter is added to an existing function. Do NOT spawn based on title/body keyword matching — too many false positives. |
 | `simplify` | 3+ new classes/abstractions; OR >200 net lines added to a single non-test file; OR >200 net lines added to a test file AND any single test function in the diff exceeds ~50 lines (large test count is fine, large individual test functions are not) |
 | `perf` | Serialization/deserialization code changed; files in `benchmarks/` or with benchmark/profile annotations touched; PR title/body mentions "performance", "hot path", "critical path", or "latency". "Known hot paths" documented in `CLAUDE.md` also trigger it — see below. |
-| `rust` | Any `.rs` files changed |
 
 ### 5. Launch agents
+
+**Language-aware `code` aspect agent selection:** Based on changed file extensions:
+
+| Files changed | Agent(s) for `code` aspect |
+|---|---|
+| `.py` only | `@code-reviewer` |
+| `.rs` only | `@code-reviewer` with Rust-specific instructions (see below) |
+| `.cpp`/`.hpp`/`.h` only | `@cpp-joe` |
+| mixed `.py` + `.rs` | `@code-reviewer` (Python) + `@code-reviewer` (Rust) in parallel |
+| mixed `.py` + `.cpp` | `@code-reviewer` + `@cpp-joe` in parallel |
+| mixed `.rs` + `.cpp` | `@code-reviewer` (Rust) + `@cpp-joe` in parallel |
+
+Other aspects (`perf`, `security`, `compat`, etc.) are language-agnostic and spawn their agents as normal regardless of language mix.
 
 - Single aspect: launch sequentially
 - Multiple aspects: launch **in parallel** using multiple Task tool calls
@@ -384,9 +395,9 @@ Suspected hot paths found during review — confirm to add to CLAUDE.md:
 
 User confirms all (A), some (1,2...), or none (N). Write only confirmed entries to the repo's `CLAUDE.md` under a "Known Hot Paths" section (create if absent). Then delete `/tmp/claude_proposed_hotpaths.json`.
 
-## Rust-specific agent instructions (`rust` aspect)
+## Rust-specific agent instructions (injected when `.rs` files are present)
 
-When spawning `@code-reviewer` for the `rust` aspect, include these additional instructions:
+When spawning `@code-reviewer` for the `code` aspect on a diff containing `.rs` files, include these additional instructions:
 
 **Ownership and borrowing:**
 - Flag any use of `.clone()` in a hot path or tight loop without justification — clones are rarely free

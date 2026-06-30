@@ -131,11 +131,13 @@ Ask the user if they want to comment on the issue. **Skip steps 3-7** (PR-only).
 
 Run `git diff --stat` to assess diff size. **Keep threshold in sync with `pr-pipeline/SKILL.md` step 0.**
 
-**Trivial diff** (1-2 files, <50 lines changed, single-concern):
-- Skip subagents — review inline in the main session
+Count non-test files and test files separately. **Trivial** = non-test changes <50 lines across 1-2 non-test files AND test changes <150 lines. If either threshold is exceeded: non-trivial.
+
+**Trivial diff:**
+- Skip subagents — main session applies the `code` review checklist inline (fast, no round-trip overhead)
 - Still run static analysis (step 3) for towncrier and lint findings
 
-**Non-trivial diff** (3+ files, >50 lines, or multi-concern):
+**Non-trivial diff:**
 - Spawn agents as normal (steps 4-5)
 
 ### 3. Static analysis pre-checks

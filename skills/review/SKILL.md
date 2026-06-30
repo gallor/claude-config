@@ -304,7 +304,7 @@ export GH_HOST && gh api repos/{repo}/pulls/{pr}/reviews --method POST --input /
 | Event | When |
 |-------|------|
 | `REQUEST_CHANGES` | Any `[critical]` finding (inline or body), OR missing newsfragment (towncrier). `[critical]` means the bug produces wrong output, data corruption, or a crash — or unintentional public API breakage on a library surface (no removal newsfragment). Style issues, missing tests for already-covered behavior, and non-blocking design concerns are never `[critical]`. |
-| `APPROVE` | Zero findings (no nits, no suggestions, nothing); OR only nits (typos, formatting, naming, style, broken links) or trivial docs (fixing a docstring typo). Review body: "LGTM, no findings." or one sentence summarising what was reviewed. Missing docstrings, wrong docstrings, missing type annotations are NOT trivial. |
+| `APPROVE` | No `[issue]`, `[question]`, or `[critical]` in any finding (inline or body) — only nits and suggestions at most. Review body: "LGTM, no findings." or one sentence summarising what was reviewed. |
 | `COMMENT` | Any `[issue]`, `[suggestion]`, or `[question]` finding (inline or body), beyond nits. Includes missing docstrings on public-facing functions (exported via `__all__` or importable without leading underscore from a non-underscore-prefixed module). Functions prefixed `_`, or in `_internal/`/`_*.py` files, are internal; missing docstrings there are nits. |
 
 **Review body:** For `REQUEST_CHANGES`/`COMMENT`, summarize thematically (narrative grouping, not a list of comments). For `APPROVE`, one sentence.

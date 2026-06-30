@@ -81,12 +81,18 @@ for line in sys.stdin:
                 close_group()
                 print(text, end="", flush=True)
                 at_line_start = text.endswith("\n")
-                summary_chunks.append(text)
+                summary_chunks.append(text if text.endswith("\n") else text + "\n")
 
 close_group()
 
-# Write accumulated text to GHA step summary if available
+# Write only the final review summary to GITHUB_STEP_SUMMARY.
+# The final summary starts with "## 🔴 Review:", "## 🟡 Review:", or "## 🟢 Review:".
+# Everything before that is intermediate narration — not useful in the summary tab.
 summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
 if summary_path and summary_chunks:
+    full_text = "".join(summary_chunks)
+    import re
+    match = re.search(r'(^|\n)(## [🔴🟡🟢].+)', full_text)
+    summary_text = full_text[match.start(2):] if match else full_text
     with open(summary_path, "a") as f:
-        f.write("".join(summary_chunks))
+        f.write(summary_text)

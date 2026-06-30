@@ -341,8 +341,22 @@ High-confidence bugs (syntactic, obvious) do not need falsification — posting 
 - **New required parameters**: "When the diff adds a new required parameter to an existing function or method (i.e., no default value), search the **full codebase** for all call sites of that function — not just the diff. Use `rg` to find every caller. If any call site outside the diff is missing the argument, flag it as `[critical]`."
 - **External consumer check** (for `@migration-specialist`): "Before escalating any API-change finding to `[issue]` or higher, verify the symbol has external consumers. A symbol has external consumers if it appears in other repos in the same GitHub org — run a code search: `gh search code \"{symbol}\" --owner {org}` and filter out the current repo. If no results: downgrade to `[suggestion]` (internal-only, no breakage risk). For Python specifically, apply the convention hierarchy as a pre-filter before running the search: underscored module (`_foo.py`) or underscored class → skip search, treat as internal. Symbol absent from `__all__` when `__all__` is defined → skip search, treat as internal. Only run the search for symbols that pass this pre-filter."
 - **Baseline reading**: Before reviewing changed code, read 2-3 unchanged functions or methods in the same class/module to establish what's normal for this codebase. Pay particular attention to functions that share naming patterns with changed code (e.g. if reviewing `bulk_consumers`, read `bulk_publishers`). Comments like "mirrors X", "equivalent to Y", or "same as Z" are explicit signals to fetch and compare the named counterpart. Divergences from the established pattern are findings; conformance is expected and unremarkable.
-- **Suspected hot path detection** (for `@performance-college-sprinter`): If you identify a code path that *appears* performance-sensitive (tight loops, high call frequency, allocation in critical sections, serialization bottlenecks) but it is NOT already documented in `CLAUDE.md` as a known hot path, flag it as a `[suggestion]` with a note: "Suspected hot path — confirm with the author." Do not escalate to `[issue]` without confirmation. If the user confirms it is hot, offer to write it to `CLAUDE.md` as a protected hot path entry (the main session handles the write after user approval).
+- **Suspected hot path detection** (for `@performance-college-sprinter`): If you identify a code path that *appears* performance-sensitive (tight loops, high call frequency, allocation in critical sections, serialization bottlenecks) but it is NOT already documented in `CLAUDE.md` as a known hot path, flag it as a `[suggestion]` in the review AND append it as a JSON entry to `/tmp/claude_proposed_hotpaths.json` (create if absent): `{"symbol": "...", "file": "...", "reason": "..."}`. Do not ask the user inline — the main session handles confirmation after posting (see step 7 postscript).
 - **Silent failure detection**: Flag any error handling that swallows exceptions without logging (`except: pass`, `except Exception: return default`), converts failures to silent defaults, or catches broad exception types without re-raising or surfacing the failure. These are `[issue]` severity — callers can't distinguish "worked correctly" from "failed silently".
 - **Test brittleness** (for `@qa-sentinel`): Distinguish tests that verify *behavior* (good — survives refactors) from tests that verify *internals* (brittle — breaks on rename/restructure without the behavior changing). Flag tests that assert on private attributes, mock internal implementation details rather than boundaries, or would break if a function were renamed without changing its behavior.
 
 Agents must not duplicate existing feedback, should build on prior discussions, and note if feedback appears addressed in the current diff.
+
+### 7b. Hot path confirmation (after posting)
+
+After posting the review, check if `/tmp/claude_proposed_hotpaths.json` exists and is non-empty. If so, present a confirmation table:
+
+```
+Suspected hot paths found during review — confirm to add to CLAUDE.md:
+
+| # | Symbol | File | Reason |
+|---|--------|------|--------|
+| 1 | pack() | encoder.pyx | tight loop, allocation per call |
+```
+
+User confirms all (A), some (1,2...), or none (N). Write only confirmed entries to the repo's `CLAUDE.md` under a "Known Hot Paths" section (create if absent). Then delete `/tmp/claude_proposed_hotpaths.json`.

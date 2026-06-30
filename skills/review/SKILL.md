@@ -127,6 +127,17 @@ Read `$CONTEXT_DIR/metadata.json` and present a summary directly — **do not sp
 
 Ask the user if they want to comment on the issue. **Skip steps 3-7** (PR-only).
 
+### 2b. Size triage
+
+Run `git diff --stat` to assess diff size. **Keep threshold in sync with `pr-pipeline/SKILL.md` step 0.**
+
+**Trivial diff** (1-2 files, <50 lines changed, single-concern):
+- Skip subagents — review inline in the main session
+- Still run static analysis (step 3) for towncrier and lint findings
+
+**Non-trivial diff** (3+ files, >50 lines, or multi-concern):
+- Spawn agents as normal (steps 4-5)
+
 ### 3. Static analysis pre-checks
 
 Run before agents launch; output is ground truth (agents should not re-check what these tools cover).

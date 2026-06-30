@@ -14,12 +14,14 @@ Create an agent team to review and prepare a PR for the current branch.
 
 Before spawning any teammates, assess the diff size and complexity (`git diff --stat <base>...HEAD`).
 
-**Trivial diff** (1-2 files, <50 lines changed, single-concern refactor or fix):
+Count non-test files and test files separately. **Trivial** = non-test changes <50 lines across 1-2 non-test files AND test changes <150 lines. **Keep threshold in sync with `review/SKILL.md` step 2b.**
+
+**Trivial diff:**
 - **Skip `reviewer`** — the lead reviews inline; the diff isn't worth a subagent round-trip.
 - **Skip `doc-writer`** — the lead writes the newsfragment directly (check existing fragments in `newsfragments/` for naming conventions and use markdown formatting).
 - Proceed directly to PR creation (step 6).
 
-**Non-trivial diff** (3+ files, >50 lines, multi-concern, new APIs, architectural changes):
+**Non-trivial diff** (exceeds either threshold, or multi-concern, new APIs, architectural changes):
 - Spawn the full team as described below.
 
 When in doubt, lean toward spawning `doc-writer` (it knows towncrier conventions) but skip `reviewer` for small diffs.

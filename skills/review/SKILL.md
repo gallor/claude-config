@@ -256,7 +256,7 @@ Omit Approach Assessment if no linked issue was found.
 
 Skip for local diff reviews.
 
-**CI mode** (`--ci` in arguments): skip the preview entirely. After triage, dedup all surviving findings against prior reviews and comments from any non-`srv-chippy-mindloom` reviewer (inline and body). If nothing survives dedup → skip posting entirely and log "no new findings after dedup." If findings survive → validate line numbers and post immediately. Do not ask for confirmation. **If a tool call fails due to permissions, do not ask the user to grant permissions — output the full review summary to stdout and exit. Never prompt interactively in CI mode.**
+**CI mode** (`--ci` in arguments): skip the preview entirely. After triage, dedup all surviving findings against prior reviews and comments from any non-`srv-chippy-mindloom` reviewer (inline and body). If nothing survives dedup → skip posting entirely and log "no new findings after dedup." If findings survive → validate line numbers and post immediately. Do not ask for confirmation. **If a tool call fails due to permissions, do not ask the user to grant permissions — output the full review summary to stdout and exit. Never prompt interactively in CI mode. Include in the warning which specific tool and command was denied, e.g.: `⚠️ CI mode: Bash("gh api repos/...") denied — review output to stdout only.`**
 
 Generate numbered inline comments grouped by file. For concrete code changes, use suggestion syntax (renders "Apply suggestion" button):
 

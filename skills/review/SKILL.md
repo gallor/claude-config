@@ -159,7 +159,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 | `docs` | `docs/`, `*.md`, or `newsfragments/` changed |
 | `security` | Auth/DB/upload/API code changed, or `.rs` files with `unsafe` blocks |
 | `compat` | A `removal` or `deprecated` newsfragment exists for this PR; OR the diff touches a symbol that is in `__all__` (if defined); OR the diff touches a non-underscored symbol in a non-underscored module that has no `__all__`; OR a new **required** parameter is added to an existing function. Do NOT spawn based on title/body keyword matching — too many false positives. |
-| `simplify` | 3+ new classes/abstractions, or >200 net lines added to a single file |
+| `simplify` | 3+ new classes/abstractions; OR >200 net lines added to a single non-test file; OR >200 net lines added to a test file AND any single test function in the diff exceeds ~50 lines (large test count is fine, large individual test functions are not) |
 | `perf` | Serialization/deserialization code changed; files in `benchmarks/` or with benchmark/profile annotations touched; PR title/body mentions "performance", "hot path", "critical path", or "latency". "Known hot paths" documented in `CLAUDE.md` also trigger it — see below. |
 
 ### 5. Launch agents

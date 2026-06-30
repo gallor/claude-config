@@ -146,7 +146,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 | `ruff format --check --diff` | `code` | Not installed or no `.py` changes |
 | `bandit` (JSON) | `security` | Not installed or no `.py` changes |
 | `towncrier check` | `docs` (triggers `REQUEST_CHANGES` if `missing: true`) | No `newsfragments/` dir |
-| `griffe` | `compat` | `ImportError`/`ModuleNotFoundError` per-package; skipped packages logged so `compat` agent does manual diff review |
+| `griffe` | `compat` | `ImportError`/`ModuleNotFoundError` per-package; skipped packages logged. When griffe is unavailable, `compat` agent uses this fallback checklist: (1) removed exports — symbols in `__all__` or top-level that no longer exist; (2) renamed public functions/classes; (3) changed signatures — removed parameters, changed types, required→optional or vice versa; (4) new required parameters on existing functions; (5) deleted files. Flag each as `[critical]` if confirmed external consumers exist (see external consumer check). |
 | `cargo clippy` (JSON) | `code`, `security` | No `Cargo.toml` or no `.rs` changes; diff-aware (only findings on PR-touched lines) |
 
 **Do NOT read `static-analysis.json` in the main session.** Exception: read the `towncrier` field to determine the review event (step 7).

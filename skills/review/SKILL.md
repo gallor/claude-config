@@ -26,6 +26,7 @@ Review code changes using specialized agents, or summarize issue discussions.
 | `perf` | `@performance-college-sprinter` |
 | `docs` | `@technical-doc-writer` |
 | `compat` | `@migration-specialist` |
+| `rust` | `@code-reviewer` (Rust mode) |
 
 ## Workflow
 
@@ -177,6 +178,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 | `compat` | A `removal` or `deprecated` newsfragment exists for this PR; OR the diff touches a symbol that is in `__all__` (if defined); OR the diff touches a non-underscored symbol in a non-underscored module that has no `__all__`; OR a new **required** parameter is added to an existing function. Do NOT spawn based on title/body keyword matching — too many false positives. |
 | `simplify` | 3+ new classes/abstractions; OR >200 net lines added to a single non-test file; OR >200 net lines added to a test file AND any single test function in the diff exceeds ~50 lines (large test count is fine, large individual test functions are not) |
 | `perf` | Serialization/deserialization code changed; files in `benchmarks/` or with benchmark/profile annotations touched; PR title/body mentions "performance", "hot path", "critical path", or "latency". "Known hot paths" documented in `CLAUDE.md` also trigger it — see below. |
+| `rust` | Any `.rs` files changed |
 
 ### 5. Launch agents
 
@@ -381,3 +383,34 @@ Suspected hot paths found during review — confirm to add to CLAUDE.md:
 ```
 
 User confirms all (A), some (1,2...), or none (N). Write only confirmed entries to the repo's `CLAUDE.md` under a "Known Hot Paths" section (create if absent). Then delete `/tmp/claude_proposed_hotpaths.json`.
+
+## Rust-specific agent instructions (`rust` aspect)
+
+When spawning `@code-reviewer` for the `rust` aspect, include these additional instructions:
+
+**Ownership and borrowing:**
+- Flag any use of `.clone()` in a hot path or tight loop without justification — clones are rarely free
+- Flag `Rc`/`RefCell` in code that could use `Arc`/`Mutex` (threading) or restructured ownership instead
+- Check that lifetime annotations are correct and minimal — over-annotating is noise, under-annotating causes borrow errors the reviewer should have caught
+
+**`unsafe` blocks:**
+- Every `unsafe` block must have a comment explaining the safety invariant it relies on. Flag any that don't.
+- Flag `transmute` unless the safety argument is airtight
+- Flag raw pointer arithmetic without bounds reasoning
+
+**Error handling:**
+- `unwrap()` in non-test code is `[issue]` unless accompanied by a comment explaining why it can't fail
+- `expect("message")` is preferred over bare `unwrap()`
+- `panic!` in library code (non-binary) is `[issue]` — libraries should return `Result`
+
+**Async:**
+- Flag blocking calls (`std::thread::sleep`, sync I/O, `std::sync::Mutex::lock` in an async context) — use `tokio::time::sleep`, async I/O, `tokio::sync::Mutex` instead
+- Flag `async` functions that do no actual async work (no `.await`) — they add overhead for nothing
+
+**Static analysis integration:**
+- `cargo clippy` findings are in `static-analysis.json` — do not re-report them, but use them as context
+- Flag any `#[allow(clippy::...)]` suppressions without a justification comment
+
+**FFI / PyO3 boundary (if present):**
+- Panic across FFI is UB — any `unwrap()`/`expect()` that could panic in a function called from C/Python is `[critical]`
+- Check GIL handling: `Python::with_gil` should be held for the minimum scope needed

@@ -79,9 +79,12 @@ Cached at `/tmp/pr-reviews/{repo_slug}-{pr}-{head_sha}/`; self-invalidates on ne
 
 **Lazy cache pruning:** At the start of every `/review` invocation run `bash ~/.claude/skills/lib/prune-pr-cache.sh 2>/dev/null`. Also run `bash ~/.claude/skills/lib/prune-pr-cache.sh {repo} {pr}` after posting an APPROVE review. The user can manually prune with `/review prune`.
 
-**Linked issue context (MANDATORY):** After reading `metadata.json`, scan the PR body for `Resolves #N`, `Fixes #N`, `Closes #N`, `Related to #N`, bare `#N`. If found, **always** fetch:
+**Linked issue context (MANDATORY):** After reading `metadata.json`, scan the PR body for `Resolves #N`, `Fixes #N`, `Closes #N`, `Related to #N`, bare `#N`, and cross-repo references `owner/repo#N` or full GHE issue URLs. If found, **always** fetch — passing the repo explicitly for cross-repo references:
 ```bash
-ISSUE_CONTEXT_DIR=$(~/.claude/skills/lib/gather-issue-context.sh {issue_number} {repo})
+# Same-repo issue:
+ISSUE_CONTEXT_DIR=$(~/.claude/skills/lib/gather-issue-context.sh {issue_number} {current_repo})
+# Cross-repo issue (owner/repo#N or full URL):
+ISSUE_CONTEXT_DIR=$(~/.claude/skills/lib/gather-issue-context.sh {issue_number} {issue_repo})
 ```
 Pass `$ISSUE_CONTEXT_DIR/metadata.json` to agents as `issue_context`. This is not optional — a PR that is technically correct but solves the wrong problem (wrong approach, adds a new code path when the fix should be integrated into an existing one) is a more serious failure than a code quality nit. Skipping this check is what causes approach-fit regressions to slip through.
 

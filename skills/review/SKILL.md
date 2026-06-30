@@ -230,7 +230,7 @@ Omit Approach Assessment if no linked issue was found.
 
 Skip for local diff reviews.
 
-**CI mode** (`--ci` in arguments): skip the preview entirely. Validate line numbers, then immediately post all valid comments. Do not ask for confirmation.
+**CI mode** (`--ci` in arguments): skip the preview entirely. After triage, dedup all surviving findings against prior reviews and comments from any non-`srv-chippy-mindloom` reviewer (inline and body). If nothing survives dedup → skip posting entirely and log "no new findings after dedup." If findings survive → validate line numbers and post immediately. Do not ask for confirmation.
 
 Generate numbered inline comments grouped by file. For concrete code changes, use suggestion syntax (renders "Apply suggestion" button):
 

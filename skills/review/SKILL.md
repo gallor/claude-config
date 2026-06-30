@@ -168,7 +168,8 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 - Multiple aspects: launch **in parallel** using multiple Task tool calls
 - Each agent reviews only their domain
 - **Wait for all agents to complete before proceeding to step 6.** Do not begin triage while any agent is still running — contradiction detection requires the full set of findings.
-- **Exception:** if the user explicitly says to proceed (e.g. "just go", "don't wait"), triage with whatever findings have arrived and note which agents are still pending. If a late-arriving agent surfaces a conflict after the review is already posted: edit `/tmp/proposed-comments.json` to add the corrected finding, validate line numbers, and PATCH the posted review via the GitHub API — do not refetch the review.
+- **Timeout:** after 10 minutes, proceed with whatever findings have arrived. Note timed-out agents in the review body: "⚠️ The following aspects timed out and may be incomplete: [list]."
+- **User override:** if the user explicitly says to proceed early (e.g. "just go", "don't wait"), apply the same treatment — triage with available findings and note pending agents. If a late-arriving agent surfaces a conflict after the review is already posted: edit `/tmp/proposed-comments.json` to add the corrected finding, validate line numbers, and PATCH the posted review via the GitHub API — do not refetch the review.
 
 ### 6. Triage and aggregate
 

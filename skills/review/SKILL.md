@@ -156,7 +156,7 @@ Output: `$ANALYSIS_DIR/static-analysis.json` (or `$CONTEXT_DIR/static-analysis.j
 |--------|---------|
 | `code` | Always |
 | `tests` | Test files changed |
-| `docs` | `docs/`, `*.md`, or `newsfragments/` changed |
+| `docs` | `docs/`, `*.md`, or `newsfragments/` changed; OR the diff contains added/modified docstrings in Python source files (lines starting with `+` that contain `"""` or `'''`). Agent checks docstrings against the repo's declared convention (Google/NumPy/etc. from `pyproject.toml` or `CLAUDE.md`). |
 | `security` | Auth/DB/upload/API code changed, or `.rs` files with `unsafe` blocks |
 | `compat` | A `removal` or `deprecated` newsfragment exists for this PR; OR the diff touches a symbol that is in `__all__` (if defined); OR the diff touches a non-underscored symbol in a non-underscored module that has no `__all__`; OR a new **required** parameter is added to an existing function. Do NOT spawn based on title/body keyword matching — too many false positives. |
 | `simplify` | 3+ new classes/abstractions; OR >200 net lines added to a single non-test file; OR >200 net lines added to a test file AND any single test function in the diff exceeds ~50 lines (large test count is fine, large individual test functions are not) |

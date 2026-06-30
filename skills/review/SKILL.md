@@ -282,7 +282,7 @@ export GH_HOST && gh api repos/{repo}/pulls/{pr}/reviews --method POST --input /
 
 | Event | When |
 |-------|------|
-| `REQUEST_CHANGES` | Any `[critical]` in posted comments, OR missing newsfragment (towncrier) |
+| `REQUEST_CHANGES` | Any `[critical]` in posted comments, OR missing newsfragment (towncrier). `[critical]` means the bug produces wrong output, data corruption, or a crash — or unintentional public API breakage on a library surface (no removal newsfragment). Style issues, missing tests for already-covered behavior, and non-blocking design concerns are never `[critical]`. |
 | `APPROVE` | Only nits (typos, formatting, naming, style, broken links) or trivial docs (fixing a docstring typo). Missing docstrings, wrong docstrings, missing type annotations are NOT trivial. |
 | `COMMENT` | Everything else: `[issue]`, `[suggestion]`, or `[question]` beyond nits. Includes missing docstrings on public-facing functions (exported via `__all__` or importable without leading underscore from a non-underscore-prefixed module). Functions prefixed `_`, or in `_internal/`/`_*.py` files, are internal; missing docstrings there are nits. |
 
@@ -307,7 +307,8 @@ Each agent prompt must include: domain focus, findings formatted as `file:line` 
 
 | Confidence | Signals | Action |
 |-----------|---------|--------|
-| **High** | Can construct the triggering input directly from the diff; syntactic pattern (unchecked return, unguarded shared state, obvious off-by-one, missing bounds check) | Post as `[critical]`/`[issue]` immediately — no kpop needed |
+| **High** | Can construct the triggering input directly from the diff; produces wrong output, data corruption, or crash | Post as `[critical]` immediately — no kpop needed |
+| **High** | Real bug but survivable (wrong but detectable, edge case, or non-crash degradation) | Post as `[issue]` immediately |
 | **Medium** | Plausible but requires tracing call sites, checking invariants, or understanding caller guarantees | Run inline kpop (5 tool cap) to confirm before surfacing |
 | **Low** | Something feels wrong but you can't articulate the triggering condition | Post as `[question]` + suggest `/kpop <symptom>` |
 

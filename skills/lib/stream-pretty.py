@@ -3,8 +3,12 @@
 
 Adds emoji per tool type and wraps tool calls in ::group:: / ::endgroup::
 so they collapse in the Actions UI, letting the final text output stand out.
+
+Also writes the full text output to $GITHUB_STEP_SUMMARY if set, so the
+review is readable in the run's Summary tab without digging into logs.
 """
 import json
+import os
 import sys
 
 EMOJI = {
@@ -25,6 +29,7 @@ EMOJI = {
 
 in_group = False
 at_line_start = True  # track whether we need a newline before GHA commands
+summary_chunks = []   # accumulate text for GITHUB_STEP_SUMMARY
 
 
 def ensure_newline():
@@ -76,5 +81,12 @@ for line in sys.stdin:
                 close_group()
                 print(text, end="", flush=True)
                 at_line_start = text.endswith("\n")
+                summary_chunks.append(text)
 
 close_group()
+
+# Write accumulated text to GHA step summary if available
+summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+if summary_path and summary_chunks:
+    with open(summary_path, "a") as f:
+        f.write("".join(summary_chunks))

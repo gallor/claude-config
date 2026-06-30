@@ -55,7 +55,10 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
   fi
 fi
 
-sanitize() { tr -d '\n\r' | cut -c1-35; }
+# cut -c is byte-oriented in a UTF-8 locale and can slice mid-codepoint,
+# emitting invalid bytes that corrupt the tmux status line and copy-mode.
+# awk substr counts characters (respects LC_CTYPE), so it never splits a glyph.
+sanitize() { tr -d '\n\r' | awk '{print substr($0,1,35)}'; }
 
 case "$event" in
   UserPromptSubmit)
@@ -87,7 +90,7 @@ case "$event" in
           .tool_response |
           if type == "string" then split("\n")[0]
           elif type == "object" then (.subject // .title // "")
-          else "" end' 2>/dev/null | tr -d '\000-\037' | cut -c1-60)
+          else "" end' 2>/dev/null | tr -d '\000-\037' | awk '{print substr($0,1,60)}')
         task_id=$(echo "$payload" | jq -r '.tool_input.taskId // "?"')
         [ -z "$task_subject" ] && task_subject="task ${task_id} done"
         pane_window_tmp=$(tmux display-message -t "$TARGET_PANE" -p "#{window_id}" 2>/dev/null)
@@ -154,7 +157,7 @@ if [ "$event" = "Stop" ]; then
                   else (. // "") end' 2>/dev/null \
         | head -n 1 \
         | tr -d '\000-\037' \
-        | cut -c1-80)
+        | awk '{print substr($0,1,80)}')
     fi
     if [ -n "$preview" ]; then
       notif="${type_sym} ${win_name:-?}: ${preview}"

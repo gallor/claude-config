@@ -4,11 +4,6 @@ A **reference snapshot** of my [Claude Code](https://claude.ai/code) setup — t
 rules, subagents, and skills I use day to day across our Python / trading-systems
 stack. It's here to **browse for ideas**, not to clone and run.
 
-> [!NOTE]
-> This is a point-in-time snapshot, not a maintained, installable config. My live
-> `~/.claude` keeps evolving; this repo won't track it move-for-move. Take what's
-> useful, adapt it to your own workflow.
-
 ## What's here
 
 | Path | What it is |

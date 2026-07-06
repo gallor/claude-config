@@ -3,3 +3,10 @@ fixtures/eval-*/
 iteration-*/eval-*/*/repo/
 iteration-*/eval-*/*/origin.git/
 iteration-*/eval-*/*/bin/
+
+# Per-run grading/outputs/timing and generated review page — local only.
+iteration-*/eval-*/*/grading.json
+iteration-*/eval-*/*/timing.json
+iteration-*/eval-*/*/outputs/
+iteration-*/eval-*/*/run-*/
+iteration-*/review.html

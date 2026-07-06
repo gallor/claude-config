@@ -80,7 +80,10 @@ This mirrors `rules/claims-vs-hypotheses.md`: a symptom is a Hypothesis. Wire ev
 
 ## Issue Structure
 
+For bug reports, use the `.github/bug_report.md` template, if existing.
+For new features, use the `.github/feature_request.md` template, if existing.
 For reliability/audit issues, use this structure:
 - **Problem**: What's wrong, with specific file:line references
 - **Impact**: What happens in production
 - **Proposed Solution**: Concrete fix with code examples where helpful
+If neither templates for bugs or features exist, use the structure for reliability/audit issues.

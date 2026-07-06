@@ -7,3 +7,6 @@ settings.json
 # editor / OS noise
 *.swp
 .DS_Store
+
+# Machine-local Claude settings
+.claude/settings.local.json

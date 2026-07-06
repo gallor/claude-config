@@ -3,7 +3,7 @@
 ## Environment
 
 - Use micromamba to manage conda environments: `micromamba run -n $CONDA_ENV <command>`
-  - Default environment: `chippy-dev`
+  - Default environment: Use the current environment that is loaded in the shell Claude was launched in. If there is no active environment or is on `base`, use `chippy-dev`
 
 ## Formatting (ruff)
 

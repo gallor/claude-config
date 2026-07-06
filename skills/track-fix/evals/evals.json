@@ -1,0 +1,47 @@
+{
+  "skill_name": "track-fix",
+  "evals": [
+    {
+      "id": 0,
+      "name": "no-ticket-work-on-main",
+      "prompt": "I just fixed a bug in the parser that was crashing on empty input — found it while testing. The change is right here in this repo but I never opened an issue for it. Can you get this tracked properly and pushed?",
+      "expected_output": "Drafts a GitHub issue (problem + proposed solution) from the diff, gets approval, creates it via gh, moves work off main onto a new branch named <slug>-<issue#>, commits with a message referencing the issue (Fixes #N), and pushes with upstream set.",
+      "files": [],
+      "assertions": [
+        "Created a new issue via `gh issue create` (no pre-existing ticket was found)",
+        "Moved the work off `main` onto a new branch whose name ends in the issue number",
+        "Created a commit that references the issue (Fixes #N)",
+        "Pushed the new branch to origin with upstream set",
+        "Did not leave the fix as uncommitted changes on main"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "ticket-in-branch-name-no-pr",
+      "prompt": "This branch has some fix work on it for the config loader. Can you make sure it's tracked and push it up?",
+      "expected_output": "Detects the issue number in the branch name, confirms via gh that the issue exists and has no attached PR, reports the existing issue URL, then commits the work with a Fixes #N reference and pushes. Does NOT create a duplicate issue.",
+      "files": [],
+      "assertions": [
+        "Detected the existing issue number from the branch name and looked it up",
+        "Did NOT create a duplicate issue",
+        "Checked whether a PR is attached to the issue",
+        "Committed the work with a reference to the issue number and pushed",
+        "Left the branch name ending in the issue number"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "ticket-found-pr-attached-stop",
+      "prompt": "I've got a fix on this branch. Please track it and get it pushed.",
+      "expected_output": "Detects the issue number, finds the issue exists AND already has a PR attached, reports the issue plus the PR's branch name (headRefName), and STOPS — no new branch, no commit, no push, no duplicate issue.",
+      "files": [],
+      "assertions": [
+        "Detected the existing issue number and looked it up",
+        "Checked for an attached PR and found one",
+        "Reported the attached PR's branch name to the user",
+        "STOPPED: no new commit, no push, no duplicate issue",
+        "Left the uncommitted fix untouched in the working tree"
+      ]
+    }
+  ]
+}

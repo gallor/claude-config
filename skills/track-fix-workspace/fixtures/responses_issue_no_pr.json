@@ -1,0 +1,6 @@
+{
+  "issue_view": {"number": 207, "title": "Config loader crashes when file is missing", "state": "OPEN", "url": "https://github.com/acme/repo/issues/207"},
+  "pr_list": [],
+  "issue_list": [],
+  "labels": ["bug", "enhancement", "reliability"]
+}

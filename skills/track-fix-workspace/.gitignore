@@ -1,0 +1,5 @@
+# Scratch git repos and generated eval run artifacts — local only.
+fixtures/eval-*/
+iteration-*/eval-*/*/repo/
+iteration-*/eval-*/*/origin.git/
+iteration-*/eval-*/*/bin/

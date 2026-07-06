@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "ticket-in-branch-name-no-pr",
+  "prompt": "This branch has some fix work on it for the config loader. Can you make sure it's tracked and push it up?",
+  "assertions": [
+    {"text": "Detected the existing issue number 207 from the branch name and looked it up (`gh issue view 207`)", "check": "gh_calls contains 'issue view 207'"},
+    {"text": "Did NOT create a duplicate issue (`gh issue create` absent)", "check": "gh_calls does not contain 'issue create'"},
+    {"text": "Checked whether a PR is attached to the issue (`gh pr list`)", "check": "gh_calls contains 'pr list'"},
+    {"text": "Committed the work with a reference to #207", "check": "git log body contains #207"},
+    {"text": "Pushed the branch to origin", "check": "branch pushed / upstream set"},
+    {"text": "Kept the branch name ending in -207 (already correct, so left intact)", "check": "final branch ends with 207"}
+  ]
+}

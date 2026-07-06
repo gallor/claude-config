@@ -1,0 +1,13 @@
+{
+  "eval_id": 0,
+  "eval_name": "no-ticket-work-on-main",
+  "prompt": "I just fixed a bug in the parser that was crashing on empty input — found it while testing. The change is right here in this repo but I never opened an issue for it. Can you get this tracked properly and pushed?",
+  "assertions": [
+    {"text": "Created a new issue via `gh issue create` (no pre-existing ticket was found)", "check": "gh_calls contains 'issue create'"},
+    {"text": "Did not fabricate a pre-existing ticket: no `gh issue view <n>` returned a real issue that was then reused", "check": "no existing issue reused"},
+    {"text": "Moved the work off `main` onto a new branch whose name ends in the issue number (-412)", "check": "final branch != main and ends with 412"},
+    {"text": "Created a commit that references the issue (Fixes #412 or Closes #412)", "check": "git log body contains #412"},
+    {"text": "Pushed the new branch to origin (upstream set)", "check": "gh/git push present; branch tracks origin"},
+    {"text": "Did not leave the fix as uncommitted changes on main", "check": "working tree clean OR work is on the new branch, main not dirty"}
+  ]
+}

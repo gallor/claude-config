@@ -1,0 +1,7 @@
+{
+  "issue_view": {"_notfound": true},
+  "pr_list": [],
+  "issue_list": [],
+  "labels": ["bug", "enhancement", "reliability"],
+  "issue_create": {"url": "https://github.com/acme/repo/issues/412", "number": 412}
+}

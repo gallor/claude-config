@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "ticket-found-pr-attached-stop",
+  "prompt": "I've got a fix on this branch. Please track it and get it pushed.",
+  "assertions": [
+    {"text": "Detected the existing issue number 311 and looked it up", "check": "gh_calls contains 'issue view 311'"},
+    {"text": "Checked for an attached PR and found one (`gh pr list`)", "check": "gh_calls contains 'pr list'"},
+    {"text": "Reported the attached PR's branch name (fix-empty-creds-311) to the user", "check": "summary mentions fix-empty-creds-311"},
+    {"text": "STOPPED: did not create a new commit for the work", "check": "no new commit beyond initial on the branch"},
+    {"text": "STOPPED: did not push", "check": "no push to origin"},
+    {"text": "Did not create a duplicate issue", "check": "gh_calls does not contain 'issue create'"},
+    {"text": "Left the uncommitted fix untouched in the working tree", "check": "git status still shows modified auth.py"}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "issue_view": {"number": 311, "title": "Login accepts empty credentials", "state": "OPEN", "url": "https://github.com/acme/repo/issues/311"},
+  "pr_list": [{"number": 512, "title": "Reject empty credentials on login", "headRefName": "fix-empty-creds-311", "url": "https://github.com/acme/repo/pull/512"}],
+  "issue_list": [],
+  "labels": ["bug", "enhancement", "reliability"]
+}

@@ -24,12 +24,12 @@ Tool for building and managing conda-based application environment definitions. 
 Run all commands via micromamba:
 
 ```sh
-micromamba run -n cp314 conservationist-client --help
+micromamba run -n core-python-dev conservationist-client --help
 ```
 
 For brevity, examples below omit the prefix. Always prepend:
 ```sh
-micromamba run -n cp314 <command>
+micromamba run -n core-python-dev <command>
 ```
 
 ### API Configuration

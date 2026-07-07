@@ -1,0 +1,22 @@
+[
+  {"query": "just patched the thing where the CSV importer chokes on BOM headers — found it while running the nightly test suite. never made a ticket for it though. can you get it properly logged and up on github?", "should_trigger": true},
+  {"query": "I've got uncommitted changes on main that fix the race condition in the connection pool. there's no issue for this. sort it out and push please", "should_trigger": true},
+  {"query": "this branch is called `quickfix` and has a real fix on it but no ticket number anywhere. make it traceable and push it up", "should_trigger": true},
+  {"query": "fixed a breakage in the deploy script that someone introduced last week. can you make an issue, branch it properly and push", "should_trigger": true},
+  {"query": "track this fix", "should_trigger": true},
+  {"query": "we hotfixed the null deref in prod but never opened anything to track it. wire it up to an issue and get it committed on a proper branch", "should_trigger": true},
+  {"query": "before I push this bugfix — it has no associated github issue, can you handle the tracking side (issue, branch name, commit) for me?", "should_trigger": true},
+  {"query": "I did some repair work on the auth middleware after the outage. nothing's tracked. get it into github properly", "should_trigger": true},
+  {"query": "there's a fix sitting on my working tree for the timezone parsing bug, no issue filed. can you get it all squared away and pushed", "should_trigger": true},
+  {"query": "open an issue for the flaky test in test_orders.py — I'm not fixing it now, just want it on the backlog", "should_trigger": false},
+  {"query": "write me a good commit message for these staged changes", "should_trigger": false},
+  {"query": "rename this branch to `feature/checkout-v2`", "should_trigger": false},
+  {"query": "create a PR for this branch, it's ready for review", "should_trigger": false},
+  {"query": "file a sub-issue under #4102 for the retry-logic piece we found", "should_trigger": false},
+  {"query": "this fix is already tracked in JIRA-1234, just commit and push it", "should_trigger": false},
+  {"query": "I found a bug in the pandas resample behavior but haven't touched any code — should I report it upstream?", "should_trigger": false},
+  {"query": "squash the last 3 commits on this branch and force push", "should_trigger": false},
+  {"query": "what issue number is this branch associated with?", "should_trigger": false},
+  {"query": "the tests are failing on this branch, can you figure out why and fix them?", "should_trigger": false},
+  {"query": "review my changes before I open a PR", "should_trigger": false}
+]

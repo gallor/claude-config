@@ -10,3 +10,6 @@ iteration-*/eval-*/*/timing.json
 iteration-*/eval-*/*/outputs/
 iteration-*/eval-*/*/run-*/
 iteration-*/review.html
+
+# Description-optimizer run log — local only; keep trigger_evals.json (the eval set).
+description-opt/run_loop.log

@@ -1,0 +1,46 @@
+{
+  "skill_name": "read-pr",
+  "evals": [
+    {
+      "id": 0,
+      "name": "heavy-feedback-dedupe",
+      "prompt": "What feedback do I still need to address on Chip/chippy#1776 before it can merge? Give me a checklist.",
+      "expected_output": "A deduplicated checkbox list of discrete action items pulled from 16 inline comments, 3 conversation comments, and 1 CHANGES_REQUESTED review. Multi-ask comments split into separate bullets; line-anchored items keep file:line; resolved threads excluded.",
+      "files": [],
+      "assertions": [
+        "Output is a bulleted/checkbox list of discrete action items (not prose paragraphs)",
+        "The 4 distinct Ruff findings (D101/D107, SLF001, TRY003/EM101, SIM117) each appear as separate action items rather than lumped into one bullet",
+        "At least some line-anchored items carry a file:line reference",
+        "Resolved threads where the author replied Done/Fixed are not listed as outstanding, or are marked resolved",
+        "Pure conversational chatter does not appear as its own action item",
+        "Output includes a count of action items and identifies the PR"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "approved-with-inline",
+      "prompt": "Read Chip/core_python#2386 and give me the review action items as a list.",
+      "expected_output": "A bulleted list of action items from 11 inline comments and 4 review bodies. Action items surface even though the PR is APPROVED; praise chatter dropped; each item attributed.",
+      "files": [],
+      "assertions": [
+        "Output is a bulleted list of action items derived from the inline comments and review bodies",
+        "Action items are surfaced even though the PR is APPROVED",
+        "Praise/acknowledgement chatter is excluded",
+        "Each action item is attributed to the reviewer who raised it",
+        "Output identifies the PR and gives a count of items"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "clean-approval",
+      "prompt": "Summarize the reviewer feedback on Chip/chippy#1777 — anything I need to fix?",
+      "expected_output": "The sole review is an LGTM APPROVED with no requested changes. Output should state there is no actionable feedback rather than inventing bullets, and name the reviewer and state.",
+      "files": [],
+      "assertions": [
+        "Output states there is NO actionable feedback rather than inventing action items",
+        "Output does not fabricate bullets from the approving reviewer's praise",
+        "Output names the reviewer and the APPROVED state"
+      ]
+    }
+  ]
+}

@@ -10,3 +10,6 @@ settings.json
 
 # Machine-local Claude settings
 .claude/settings.local.json
+
+# read-pr skill build artifacts — local only
+skills/read-pr-workspace/

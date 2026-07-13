@@ -1,0 +1,45 @@
+{
+  "skill_name": "address-pr-review",
+  "evals": [
+    {
+      "id": 0,
+      "name": "plan-then-apply",
+      "prompt": "Let's go through the review comments on my PR and fix them.",
+      "expected_output": "Resolves the current-branch PR, gathers only the open review threads, presents a per-comment plan, waits for the user's sign-off BEFORE editing any code, then applies fixes, commits, pushes, and responds to each thread on GitHub.",
+      "files": [],
+      "assertions": [
+        "Identifies the PR for the current branch (or from the provided reference) before doing anything else",
+        "Gathers review context via the shared helper / gh, capturing comment IDs for later replies",
+        "Presents a plan grouped by reviewer/file with a proposed action per comment",
+        "Waits for user sign-off on the plan before making any code changes",
+        "After approval: applies fixes, commits with standalone bullets, pushes, and responds to threads (resolve/reply/leave-open)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "ambiguous-comment-flagged",
+      "prompt": "Address the feedback on this PR — the reviewer left a mix of required changes and some optional suggestions.",
+      "expected_output": "Distinguishes required changes (accept and apply) from optional suggestions (flag as 'needs user input' rather than silently applying), and does not resolve a suggestion thread on the user's behalf without their decision.",
+      "files": [],
+      "assertions": [
+        "Classifies each comment's proposed action (accept-as-is / accept-with-interpretation / needs-user-input / disagree)",
+        "Optional or invitation-to-decide suggestions are flagged as 'needs user input' rather than applied automatically",
+        "Does not resolve or reply on a thread the user hasn't decided on",
+        "Presents options for the ambiguous items and asks the user before proceeding"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "skip-resolved-second-round",
+      "prompt": "The reviewer left another round of comments on my PR — can you handle the new feedback?",
+      "expected_output": "Reflects the current review state: works only the open/unresolved threads and does not replay threads already resolved in a prior round. Treats silence on a nit as still-open, not resolved.",
+      "files": [],
+      "assertions": [
+        "Fetches the current review state rather than assuming a prior run's results",
+        "Only works threads that are still open/unresolved; skips already-resolved threads",
+        "Does not re-apply or re-respond to comments handled in a previous round",
+        "Treats an unreplied nit/suggestion as still open rather than resolved"
+      ]
+    }
+  ]
+}

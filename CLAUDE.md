@@ -21,6 +21,7 @@
 | Agent | Model | Use For |
 |-------|-------|---------|
 | **OPUS (Deep Reasoning)** |
+| `@deep-reasoner` | opus | Reasoning-heavy phases, architecture, complex debugging, algorithm design — advisory-only, returns a concise actionable conclusion |
 | `@ultrathink-debugger` | opus | Complex bugs, root cause analysis (Claims vs Hypotheses) |
 | `@solution-architect` | opus | System design, API design, architectural decisions |
 | `@performance-usain-bolt` | opus | Deep optimization, benchmarking, library evaluation |
@@ -41,6 +42,28 @@
 | `@requirements-architect` | sonnet | Requirements gathering, stakeholder communication |
 | `@qa-sentinel` | sonnet | Test strategy, test implementation |
 | `@tech-debt-tracker` | sonnet | Identify and prioritize technical debt |
+| **HAIKU (Mechanical Execution)** |
+| `@fast-worker` | haiku | Boilerplate, formatting, simple edits, obvious tests, rote refactors — executes a decided spec efficiently, escalates on judgment |
+
+## Orchestration Workflow
+
+You (the main session) are the **orchestrator**. Your job is to plan, decompose, and synthesize — not to burn your own context on work a subagent can do. Keep your context lean: delegate the doing, hold the plan.
+
+**Routing by phase:**
+
+| Phase | Route to | Why |
+|-------|----------|-----|
+| Reasoning-heavy (architecture, complex debugging, algorithm design, hard trade-offs) | `@deep-reasoner` | Opus reasoning, advisory-only, returns a concise conclusion you act on |
+| Mechanical (boilerplate, formatting, simple edits, obvious tests, rote refactors) | `@fast-worker` | Haiku execution — fast and cheap for decided work |
+
+**Codex as a peer reasoner.** `/codex:rescue --background` is a cracked engineer on par with `@deep-reasoner`, reasoning from a different perspective (different model, different training). Treat Codex as a **peer, not a reviewer** — it is not there to rubber-stamp Opus's answer; it is there to produce its own.
+
+**High-stakes decisions — parallel synthesis.** For a decision where being wrong is expensive (architecture that's hard to reverse, a subtle correctness call, a design that many things depend on):
+
+1. Task **`@deep-reasoner` (Opus)** and **Codex (`/codex:rescue --background`)** on the *same* problem, **in parallel**.
+2. **Do not show either one the other's answer** — independent reasoning avoids anchoring and groupthink; two genuinely independent solutions are worth more than one plus a critique.
+3. **Synthesize the best of both** yourself. Take the strongest reasoning from each, reconcile where they disagree, and form the final decision.
+4. Keep your own context lean throughout — hold the question and the two conclusions, not the full working of either.
 
 ## Agent Team Workflows
 

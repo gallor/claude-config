@@ -22,6 +22,9 @@ This file defines when subagents should be automatically invoked.
 
 | When This Context Is Detected | Invoke | Purpose |
 |-------------------------------|--------|---------|
+| Reasoning-heavy phase (architecture, complex debugging, algorithm design, hard trade-offs) with no single specialist fit | `@deep-reasoner` | Opus reasoning, advisory-only; returns a concise actionable conclusion. See [Orchestration Routing](#orchestration-routing) |
+| Mechanical, decided work (boilerplate, formatting, simple edits, obvious tests, rote refactors) | `@fast-worker` | Haiku execution — fast and cheap. See [Orchestration Routing](#orchestration-routing) |
+| High-stakes, hard-to-reverse decision | `@deep-reasoner` + `codex:codex-rescue` in parallel | Independent dual-reasoner synthesis. See [Orchestration Routing](#orchestration-routing) |
 | Production incident or complex bug | `/incident` (team) or `@ultrathink-debugger` (solo) | Investigation with optional competing hypotheses |
 | New feature or bug fix (test-first) | `/tdd` (team) or `@qa-sentinel` → `@code-craftsman` (solo) | TDD workflow |
 | Bug requires deep debugging | `@ultrathink-debugger` | See [Debugger Invocation Criteria](#debugger-invocation-criteria) — present hypothesis to user before invoking |
@@ -37,6 +40,21 @@ This file defines when subagents should be automatically invoked.
 | Bug or investigation where cause isn't immediately obvious | `/kpop` | Default investigation protocol — use first, not after you're stuck |
 | 3+ hypotheses falsified or cycling on similar approaches | `/creativity` | Boundary exploration to escape local optima (escalation within `/kpop`) |
 | Root cause identified, user opts to fix (not file an issue) | `/tdd` | **Mandatory** — failing regression test before the patch. See `rules/claims-vs-hypotheses.md` § Falsification First "Post-diagnosis rule". Never fix-then-test. |
+
+## Orchestration Routing
+
+The main session is the **orchestrator**: plan, decompose, delegate, synthesize — keep your own context lean by handing the *doing* to subagents. These three triggers implement the tier routing (full rationale in `CLAUDE.md` § Orchestration Workflow).
+
+**Precedence:** a specific specialist beats the generic reasoner. If the task is squarely a documented specialty — architecture design → `@solution-architect`, reproduce-and-fix debugging → `@ultrathink-debugger`, perf → `@performance-*`, etc. — route there. Use `@deep-reasoner` only when the reasoning is cross-cutting, spans systems, or no single specialist fits (e.g. algorithm design). This keeps the existing Context Triggers authoritative and `@deep-reasoner` as the catch-all for hard thinking.
+
+**`@fast-worker` (Haiku, mechanical):** route decided, low-judgment work here — the "what" is already settled and only execution remains. The moment judgment is required (design, test strategy, unclear approach), `@fast-worker` escalates back rather than guessing. Do not send it work that hasn't been scoped.
+
+**High-stakes parallel synthesis** (`@deep-reasoner` + `codex:codex-rescue`): for a decision that is expensive to get wrong (hard-to-reverse architecture, subtle correctness call, a design many things depend on):
+
+1. Spawn **`@deep-reasoner`** (Opus) and **`codex:codex-rescue`** (via the Agent tool, `subagent_type: "codex:codex-rescue"`) on the *same* problem, both with `run_in_background: true`, in a single turn so they run concurrently.
+2. **Keep them blind to each other** — neither sees the other's answer. Independent reasoning beats one answer plus a critique; it avoids anchoring and groupthink.
+3. **Synthesize** the strongest reasoning from each yourself; reconcile disagreements and commit to the final decision.
+4. Codex is a **peer, not a reviewer** — it produces its own solution, it does not rubber-stamp Opus. It requires `/codex:setup` to be ready. `codex:codex-rescue` is a **subagent, not a skill** — never `Skill(codex:rescue)` (it re-enters the command and hangs the session).
 
 ## Trigger Protocol
 

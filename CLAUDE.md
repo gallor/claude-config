@@ -56,11 +56,13 @@ You (the main session) are the **orchestrator**. Your job is to plan, decompose,
 | Reasoning-heavy (architecture, complex debugging, algorithm design, hard trade-offs) | `@deep-reasoner` | Opus reasoning, advisory-only, returns a concise conclusion you act on |
 | Mechanical (boilerplate, formatting, simple edits, obvious tests, rote refactors) | `@fast-worker` | Haiku execution — fast and cheap for decided work |
 
-**Codex as a peer reasoner.** `/codex:rescue --background` is a cracked engineer on par with `@deep-reasoner`, reasoning from a different perspective (different model, different training). Treat Codex as a **peer, not a reviewer** — it is not there to rubber-stamp Opus's answer; it is there to produce its own.
+**Codex as a peer reasoner.** Codex is a cracked engineer on par with `@deep-reasoner`, reasoning from a different perspective (different model, different training). Treat Codex as a **peer, not a reviewer** — it is not there to rubber-stamp Opus's answer; it is there to produce its own.
+
+Invoke it as the **`codex:codex-rescue` subagent via the Agent tool** (`subagent_type: "codex:codex-rescue"`), or by typing the `/codex:rescue` command. It is a subagent, **not** a skill — never call `Skill(codex:rescue)` (it re-enters the command and hangs the session). For the parallel path below, spawn it with `run_in_background: true` so it runs concurrently with the Opus reasoner. Codex is a thin forwarder that returns its output verbatim; requires `/codex:setup` to be ready (already verified in this environment).
 
 **High-stakes decisions — parallel synthesis.** For a decision where being wrong is expensive (architecture that's hard to reverse, a subtle correctness call, a design that many things depend on):
 
-1. Task **`@deep-reasoner` (Opus)** and **Codex (`/codex:rescue --background`)** on the *same* problem, **in parallel**.
+1. Task **`@deep-reasoner` (Opus)** and **Codex (`codex:codex-rescue`)** on the *same* problem, **in parallel** — spawn both as background agents in one turn.
 2. **Do not show either one the other's answer** — independent reasoning avoids anchoring and groupthink; two genuinely independent solutions are worth more than one plus a critique.
 3. **Synthesize the best of both** yourself. Take the strongest reasoning from each, reconcile where they disagree, and form the final decision.
 4. Keep your own context lean throughout — hold the question and the two conclusions, not the full working of either.

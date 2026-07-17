@@ -47,14 +47,18 @@
 
 ## Orchestration Workflow
 
-You (the main session) are the **orchestrator**. Your job is to plan, decompose, and synthesize — not to burn your own context on work a subagent can do. Keep your context lean: delegate the doing, hold the plan.
+The orchestrator workflow is **explicit-only** — run it by invoking the **`/orchestrate`** skill. It does not fire from context. Its first step is always **triage**: most tasks do not warrant deep analysis or a full fan-out, so `/orchestrate` routes to the cheapest lane that fits and only escalates to parallel synthesis when a task genuinely earns it.
 
-**Routing by phase:**
+**Triage lanes (in `/orchestrate`):**
 
-| Phase | Route to | Why |
-|-------|----------|-----|
-| Reasoning-heavy (architecture, complex debugging, algorithm design, hard trade-offs) | `@deep-reasoner` | Opus reasoning, advisory-only, returns a concise conclusion you act on |
-| Mechanical (boilerplate, formatting, simple edits, obvious tests, rote refactors) | `@fast-worker` | Haiku execution — fast and cheap for decided work |
+| Lane | The task is… | Route to |
+|------|--------------|----------|
+| Cheap/mechanical | Decided work, only execution remains | One `@fast-worker`, or inline for a one-liner |
+| Single specialist | Squarely one documented specialty | That specialist (architecture → `@solution-architect`, debugging → `@ultrathink-debugger`, perf → `@performance-*`, …) |
+| Reasoning-heavy, not high-stakes | Needs real thinking, cheap to correct if wrong | One `@deep-reasoner` (no Codex) |
+| High-stakes | Expensive to get wrong, hard to reverse, or cross-cutting | Parallel synthesis (below) |
+
+Only the high-stakes lane fans out. As orchestrator (the main session) your job there is to plan, decompose, and synthesize — not to burn your own context on work a subagent can do. Keep your context lean: delegate the doing, hold the plan.
 
 **Codex as a peer reasoner.** Codex is a cracked engineer on par with `@deep-reasoner`, reasoning from a different perspective (different model, different training). Treat Codex as a **peer, not a reviewer** — it is not there to rubber-stamp Opus's answer; it is there to produce its own.
 
@@ -66,6 +70,8 @@ Invoke it as the **`codex:codex-rescue` subagent via the Agent tool** (`subagent
 2. **Do not show either one the other's answer** — independent reasoning avoids anchoring and groupthink; two genuinely independent solutions are worth more than one plus a critique.
 3. **Synthesize the best of both** yourself. Take the strongest reasoning from each, reconcile where they disagree, and form the final decision.
 4. Keep your own context lean throughout — hold the question and the two conclusions, not the full working of either.
+
+`@deep-reasoner`, `@fast-worker`, and `codex:codex-rescue` remain directly `@`-callable at any time; `/orchestrate` is the triage-and-fan-out entry point, not a gate on the individual agents.
 
 ## Agent Team Workflows
 
@@ -83,6 +89,7 @@ Specialists (`@performance-*`, `@security-sentinel`, `@observability-*`, `@solut
 
 | Skill | Invocation | Team Spawned |
 |-------|------------|--------------|
+| `/orchestrate` | `/orchestrate <task>` | Triage, then one cheap agent or parallel `@deep-reasoner` + `codex:codex-rescue` synthesis (high-stakes only) |
 | `/review` | `/review [aspects]` | Solo or parallel review agents (code, tests, simplify, security, perf) |
 | `/pr-pipeline` | `/pr-pipeline` | PR Pipeline Team |
 | `/tdd` | `/tdd <description>` | TDD Feature Dev Team |

@@ -33,12 +33,19 @@ pct_int=""
 pct=""
 sparkline_str=""
 if [ -n "$transcript" ] && [ -f "$transcript" ]; then
+  # Filter to the main thread's most recent assistant turn:
+  #  - isSidechain != true  excludes sub-agent (@-agent) requests, which carry
+  #    their own small fresh context and would otherwise be grabbed as the last line
+  #  - role == "assistant"  is where the API-reported context usage lives
+  #  - output_tokens is excluded: context is the input side (prompt) only
   tokens=$(tac "$transcript" 2>/dev/null \
-    | jq -r 'select(.message.usage) | .message.usage | (.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens + .output_tokens)' \
+    | jq -r 'select(.message.usage and (.isSidechain != true) and (.message.role == "assistant"))
+             | .message.usage
+             | (.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens)' \
     | head -n 1)
   if [ -n "$tokens" ] && [ "$tokens" -gt 0 ] 2>/dev/null; then
     pct_int=$(awk -v t="$tokens" -v w="$CONTEXT_WINDOW" 'BEGIN{printf "%d", (t*100)/w}')
-    pct="${pct_int}%"
+    pct="${pct_int}% used"
 
     # Update sparkline history (keep last 8 readings)
     echo "$pct_int" >> "$HIST_FILE"

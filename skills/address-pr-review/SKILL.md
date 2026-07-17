@@ -198,10 +198,13 @@ Match threads to your plan entries by file path, line number, and comment body c
 
 ## Phase 6: Re-request Reviews
 
-After all comments are addressed and responded to, check which reviewers left "changes requested" reviews. If you've addressed all of their comments, re-request their review:
+After all comments are addressed and responded to, check which reviewers left "changes requested" reviews. If you've addressed all of their comments, re-request their review.
+
+`gh pr edit` fails in our GHE environment (broken GraphQL mutation — see `rules/command-line.md`), so use the REST API. Keep `GH_HOST` exported from the sourced `gh-env.sh`:
 
 ```bash
-gh pr edit {number} --add-reviewer {reviewer}
+OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+gh api "repos/${OWNER_REPO}/pulls/{number}/requested_reviewers" -f "reviewers[]={reviewer}"
 ```
 
 Only re-request from reviewers whose feedback was fully addressed (all their threads resolved or replied to). If any of their comments were left open intentionally, do not re-request — the user probably wants to discuss further before asking for another look.

@@ -39,27 +39,58 @@ if [ $# -eq 2 ]; then
   exit 0
 fi
 
-# Default: scan all cached dirs, prune merged/closed
+# Default: scan all cached dirs, prune merged/closed.
+# A long-lived PR accumulates one cache dir per pushed commit (the sha is part
+# of the key), so dedup by (repo, pr) before querying — otherwise we'd issue a
+# separate `gh pr view` for every stale dir of the same PR. Query each unique
+# PR once, in parallel, then prune all its dirs based on the single result.
 PRUNED=0
 KEPT=0
+STATE_DIR=$(mktemp -d)
+trap 'rm -rf "$STATE_DIR"' EXIT
 
+# Collect unique (repo, pr) pairs across all cached dirs.
+declare -A SEEN
 for dir in "$CACHE_ROOT"/*/; do
   [ -d "$dir" ] || continue
   [ -f "$dir/repo.txt" ] || continue
 
   REPO=$(cat "$dir/repo.txt")
-  # Extract PR number from dir name: {repo_slug}-{pr}-{sha}
   BASENAME=$(basename "$dir")
-  # Remove repo slug prefix and sha suffix to get PR number
   REPO_SLUG=$(echo "$REPO" | tr '/' '-')
   PR_PART="${BASENAME#${REPO_SLUG}-}"
   PR="${PR_PART%%-*}"
 
-  if [ -z "$PR" ] || ! [[ "$PR" =~ ^[0-9]+$ ]]; then
-    continue
-  fi
+  [[ "$PR" =~ ^[0-9]+$ ]] || continue
+  SEEN["$REPO#$PR"]=1
+done
 
-  STATE=$(gh pr view "$PR" --repo "$REPO" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+# Query each unique PR's state once, in parallel.
+for key in "${!SEEN[@]}"; do
+  REPO="${key%#*}"
+  PR="${key#*#}"
+  (
+    STATE=$(gh pr view "$PR" --repo "$REPO" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+    # Sanitize key for use as a filename.
+    echo "$STATE" > "$STATE_DIR/${key//\//_}"
+  ) &
+done
+wait
+
+# Prune all dirs for PRs that came back MERGED/CLOSED.
+for dir in "$CACHE_ROOT"/*/; do
+  [ -d "$dir" ] || continue
+  [ -f "$dir/repo.txt" ] || continue
+
+  REPO=$(cat "$dir/repo.txt")
+  BASENAME=$(basename "$dir")
+  REPO_SLUG=$(echo "$REPO" | tr '/' '-')
+  PR_PART="${BASENAME#${REPO_SLUG}-}"
+  PR="${PR_PART%%-*}"
+  [[ "$PR" =~ ^[0-9]+$ ]] || continue
+
+  SANITIZED=$(echo "${REPO}#${PR}" | tr '/' '_')
+  STATE=$(cat "$STATE_DIR/$SANITIZED" 2>/dev/null || echo "UNKNOWN")
 
   if [ "$STATE" = "MERGED" ] || [ "$STATE" = "CLOSED" ]; then
     rm -rf "$dir"

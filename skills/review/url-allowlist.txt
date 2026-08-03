@@ -1,0 +1,142 @@
+# url-allowlist.txt — hosts kaa may WebFetch for review context (kaa#32, claude-config#94).
+#
+# SSRF is closed by CONSTRUCTION: a URL is fetchable only if its host — AND the
+# host of every redirect hop — is on this list. An off-list host (including a
+# redirect target) is never fetched, so an attacker-controlled PR link cannot
+# reach an UNVETTED endpoint (an internal service, an attacker's host, or a
+# redirect to either). Public vs internal is NOT the control — a deliberately
+# listed internal host is vetted; see the entry criteria below. This is the ONLY
+# egress policy; there is no open-fetch-with-range-blocking path.
+#
+# THIS COMMENT IS THE CANONICAL STATEMENT of the fetch security model and the
+# entry criteria. Other surfaces (gather-url-context.sh's header, review
+# SKILL.md, this repo's README, kaa's README) must POINT here, not restate —
+# a restated doctrine needs N synchronised edits per change and drifts the
+# moment one is missed (claude-config#118 spent four rounds chasing copies).
+#
+# Format (NOT globs — globs are an allowlist footgun, e.g. `*example.com` also
+# matches `evilexample.com`):
+#   host.example.com   exact host match only
+#   .example.com       that domain AND any subdomain (dot-boundary suffix match)
+# Matching is case-insensitive, on the resolved host only (never the path/query),
+# https + default port only (http is upgraded; other schemes/ports rejected).
+#
+# Grow this list by PR as real PRs cite new hosts. Keep it conservative: an
+# entry here is a host kaa will fetch attacker-supplied PATHS from, so each
+# addition is a deliberate, reviewed trust decision.
+#
+# INTERNAL HOSTS ARE ELIGIBLE. "Public" is not the criterion and never was —
+# the guard exists to stop a PR link reaching an endpoint nobody vetted, and an
+# explicitly listed internal docs host is vetted by definition. Judge a
+# candidate on these five instead:
+#
+#   1. GET is inert. A fetch must not actuate anything — the path comes from the
+#      PR author. Docs/specs/design pages qualify; admin consoles, job/deploy
+#      triggers, and APIs with side-effecting GETs do NOT. This is the one that
+#      actually matters for an internal host, since it is the only listed host
+#      class where a GET could reach something that acts.
+#      NOTE the asymmetry, and that criterion 1 is judged ONCE at add time while
+#      entries are append-only. A hostile path against a public docs site hits a
+#      404 — being wrong about inertness there costs nothing. Inside the network
+#      boundary a wrong (or later-invalidated) judgment is a path-controlled
+#      reach into a real service, and no one re-checks it. So for an INTERNAL
+#      host, "inert today" is not sufficient — list it only if it is inert by
+#      construction and expected to stay so:
+#        - a docs/spec SITE (static or generated), not an application that
+#          happens to have a read-only page today. An app can grow a route; a
+#          docs site growing a state-changing GET is a different product.
+#        - a host you would be comfortable letting an outsider GET any path on,
+#          since attacker-supplied paths are exactly what an entry grants.
+#      If you cannot say both, do not list it — fetch nothing, or build a
+#      purpose-built tool with a fixed request shape (which is the right answer
+#      whenever the value is one field rather than a page; see criterion 4).
+#      EXACT HOSTS ONLY for an internal entry — never the `.domain` dot-boundary
+#      form. Both tests above are judged per host at add time, and a subdomain
+#      that does not exist yet cannot be judged at all: `.corp.example.com`
+#      admits every current subdomain plus every one created later, which is
+#      precisely the un-vetted host the tests exist to exclude. Note the
+#      dot-boundary rationale in the exchange section below does NOT transfer —
+#      "one owner, >1 subdomain cited" passes trivially for a wholly-owned
+#      internal domain, yet the risk it was reasoning about (a multi-tenant
+#      registrar) is not the risk here (unreviewed internal service growth).
+#      List each internal host on its own line as you actually need it.
+#   2. Serves valid https on the default port. The fetcher upgrades http->https
+#      and verifies the cert, so a host whose cert omits it from the SAN is
+#      unfetchable no matter what this file says (measured: stageweb.qa.chip.drw
+#      200s over http, fails https cert verification — listing it would change
+#      "not on allowlist" into "tls error", not into a working fetch). Fix the
+#      cert first; do not weaken the scheme rule for one host.
+#   3. Not auth-walled — e.g. git.drwholdings.com would just bounce to a login
+#      page, so it stays off (a practical fact, not a public/private judgment).
+#   4. Content is worth the tokens: reference material a reviewer would cite
+#      (spec, API docs, design page), not a live-state dump. A 1 MB console page
+#      markdown-converted into every aspect's context is cost without signal;
+#      prefer a purpose-built tool over scraping a UI.
+#   5. Safe to disclose. A fetched page is summarized into a digest shared to
+#      every aspect agent and can surface in a review visible instance-wide, so
+#      the fetch is an egress of the page's content. "Public only" used to cover
+#      this for free (public content can't leak by being summarized); dropping
+#      it means an internal host is eligible ONLY when its content is also safe
+#      to restate in a world-visible review — a spec, API doc, or design page
+#      that carries no secret, credential, PII, or confidential business data.
+#      This is the one criterion auth-walling (3) does NOT imply: a
+#      perimeter-secured-but-open internal page has no per-request auth gate, so
+#      it passes 3 yet may hold sensitive content. When unsure whether a page is
+#      safe to echo into a review, do not list the host.
+
+# --- public spec / standards ---
+.rfc-editor.org
+.ietf.org
+.w3.org
+
+# --- public language / library docs ---
+docs.python.org
+# NB: no bare `.readthedocs.io` — it is multi-tenant (any project gets
+# <name>.readthedocs.io), the same footgun the exchange-docs section calls out
+# for github.io/gitbook.io. A dot-boundary entry would allowlist an attacker's
+# project page. Add the specific `<project>.readthedocs.io` a PR actually cites,
+# exact-host, when one does (none has yet).
+pkg.go.dev
+doc.rust-lang.org
+
+# --- public GitHub content (public repos only; not the GHE instance) ---
+github.com
+raw.githubusercontent.com
+gist.github.com
+
+# --- public crypto-exchange API docs (cited by dropcopy-python clients) ---
+# Exact hosts, never dot-boundary: github.io / gitbook.io / gitbooks.io are
+# multi-tenant (any third party can register a subdomain), so a `.github.io`
+# entry would allowlist an attacker's page. Dot-boundary is used only where a
+# single exchange owns the whole domain AND we've seen >1 subdomain cited.
+# This test is scoped to PUBLIC docs hosts and does not carry over to internal
+# ones — see criterion 1 above, which requires exact hosts there.
+# Binance
+developers.binance.com
+binance-docs.github.io
+# Bybit
+bybit-exchange.github.io
+# OKX
+www.okx.com
+# Deribit
+docs.deribit.com
+www.deribit.com
+deribitexchange.gitbooks.io
+# Kraken (exchange owns the domain; multiple subdomains cited)
+.kraken.com
+# Coinbase (exchange owns the domain; multiple subdomains cited)
+.coinbase.com
+# BitMEX
+www.bitmex.com
+support.bitmex.com
+# Gate
+www.gate.io
+www.gate.com
+# Hyperliquid
+hyperliquid.gitbook.io
+# Polymarket (docs.perpetuals.* 301s to docs.polymarket.com/perps/overview;
+# both listed so the redirect chain stays on-list end to end)
+docs.perpetuals.polymarket.com
+docs.polymarket.com
+# Haruko
+platform.haruko.io

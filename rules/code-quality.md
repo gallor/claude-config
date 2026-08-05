@@ -140,3 +140,5 @@ Minimize inline comments. Code should be self-documenting through clear naming a
 - Restating function/variable names
 - TODOs without tickets
 - Commented-out code (delete it)
+
+**Formatting:** inline code uses single-backtick markdown, never double-backtick RST. Write `` `variable` ``, not `` ``variable`` `` (double backticks are reStructuredText's inline-literal role). This applies to all comments, docstrings, and prose (PR/issue text, newsfragments), and holds even when the surrounding file already uses RST-style docstrings.

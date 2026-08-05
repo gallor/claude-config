@@ -11,6 +11,11 @@
   - The user explicitly asks to format the whole file
   - You are creating a new file
 
+## Documentation
+
+- Always use markdown instead of any rst-style documentation for creating documents or adding docstrings. Use the Google docstring format defined at https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings.
+- **Inline code in docstrings and comments uses single-backtick markdown, never double-backtick RST.** Write `` `arg` ``, not `` ``arg`` ``; double backticks are reStructuredText's inline-literal role. This holds even when the surrounding file already uses RST-style docstrings (`:param:`, `:returns:`).
+
 ## Assertions
 
 - **Never use `assert` statements in production code** (non-`test_*.py` files). They add hot-path branching, are stripped by `python -O`, and validate internal invariants that callers already guarantee. Trust internal code; only validate at system boundaries with proper exceptions.

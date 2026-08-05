@@ -113,6 +113,12 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 - Incremental changes made during a session (e.g., "changed X to Y", "removed redundant copy") should not appear as separate bullets — they're implementation details, not features
 - Benchmark numbers need multiple runs; single-run speedups vary ±5%. Round to one decimal.
 
+## Commit Messages
+
+- **Be succinct.** Default to a subject line alone (≤72 chars, imperative mood). Add a body only when the *why* isn't obvious from the diff.
+- When a body is warranted, keep it to a few short bullets or 1-2 sentences — not a paragraph per file. State what changed and why, not a change-by-change narration.
+- Let `git commit -m "<subject>"` be the common case. Reserve multi-line bodies for genuinely non-obvious or cross-cutting changes.
+
 ## Newsfragments (Towncrier)
 
 - **Use markdown formatting, not reStructuredText (RST).** Fragment content should be plain text or markdown.

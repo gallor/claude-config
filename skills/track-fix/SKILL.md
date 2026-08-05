@@ -87,13 +87,14 @@ Draft the issue from the actual work, then get approval before creating it.
 
 The branch name must end in `-<issue#>` so the tracking is visible at a glance.
 
-- **If currently on the primary branch (`main`/`master`):** you cannot rename it. Create a new branch that carries the work off main. Name it from the fix plus the issue number, e.g. `fix-widget-crash-123`:
+- **If currently on the primary branch (`main`/`master`):** you cannot rename it. The work needs a new branch named from the fix plus the issue number, e.g. `fix-widget-crash-123`. Prefer isolating it in a **worktree** (consistent with `/start-work`), falling back to an in-place branch:
 
-  ```bash
-  git switch -c <slug>-<number>
-  ```
-
-  Uncommitted changes follow you onto the new branch automatically. If the fix was already committed on main, move those commits onto the new branch and reset main back (confirm with the user before rewriting main's history).
+  - **Preferred — enter a worktree.** Because the fix work is already in the root checkout, it must be *migrated* into the fresh worktree, not just branched. Confirm with the user, then:
+    1. Stash the work in the root: `git stash push -u -m "track-fix <number>"` (`-u` includes untracked files). For work already *committed* on main, skip the stash — note the commit SHAs to cherry-pick, and confirm before resetting main's history back.
+    2. Enter the worktree with the **`EnterWorktree` tool**, `name` = `<slug>-<number>` (the `WorktreeCreate` hook creates it at `.claude/worktrees/<branch>` on a matching branch).
+    3. In the worktree, restore the work: `git stash pop` (uncommitted case) or `git cherry-pick <shas>` then reset main back (committed case).
+    4. For `src/`-layout repos, set `PYTHONPATH="$PWD/src"` (see `/start-work` Step 5 / the `cp-git-worktree` skill).
+  - **Fallback — in-place branch** (if `EnterWorktree` is unavailable or the user declines the worktree): `git switch -c <slug>-<number>`. Uncommitted changes follow onto the new branch automatically; for already-committed work, move those commits onto the new branch and reset main back (confirm before rewriting main's history). Tell the user the work is in the repo root, not a worktree.
 
 - **If on a feature branch that lacks the number:** rename it in place, appending `-<number>`:
 

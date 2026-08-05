@@ -10,7 +10,7 @@
 | `rules/agent-triggers.md` | Agent invocation, escalation triggers, model selection | Always |
 | `rules/claims-vs-hypotheses.md` | Evidence requirements for claims | Always |
 | `rules/agent-teams.md` | Team protocols, chaining, escalation paths | By team skills |
-| `rules/github-issues.md` | GH issue creation, labels, sub-issues | By `@technical-doc-writer`, `/sub-issue` |
+| `rules/github-issues.md` | GH issue creation, labels, sub-issues, start-work→worktree | By `@technical-doc-writer`, `/sub-issue`, `/create-issue`, `/start-work`, `/track-fix` |
 | `rules/comment-style.md` | Theme-first + collapsible format for posted PR/issue comments | By `/review`, `/pr-pipeline`, `@code-reviewer` |
 | `rules/zensical.md` | Zensical config, syntax, conventions | By `@technical-doc-writer` |
 | `rules/session-wrapup.md` | Review & suggest CLAUDE.md updates | By `/lessons-learned` |

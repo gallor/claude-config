@@ -1,5 +1,14 @@
 # GitHub Issues
 
+## Starting Work on an Issue → Worktree, Never the Repo Root
+
+Beginning work on any GitHub issue (a freshly filed one or an already-existing one) must check the work out into an isolated git **worktree**, not the repo root. Use the **`/start-work <number>`** skill: it resolves the issue, derives a `<slug>-<number>` branch, and enters a worktree at `<repo-root>/.claude/worktrees/<branch>` via the `EnterWorktree` tool (the `WorktreeCreate` hook names the branch to match the worktree).
+
+- `create-issue` files the issue and then offers the `/start-work` handoff; it does not auto-enter a worktree (filing for later shouldn't spawn a stray worktree).
+- `track-fix` (retroactive) migrates the already-written fix into a worktree by the same route, falling back to an in-place branch only if the user declines or `EnterWorktree` is unavailable.
+- For `src/`-layout editable-install repos, set `PYTHONPATH="$PWD/src"` in the worktree rather than re-running `pip install -e .` (see the `cp-git-worktree` skill).
+- If `EnterWorktree` is genuinely unavailable, say so explicitly and fall back to an in-place branch — never silently edit issue work in the repo root.
+
 ## Labels
 
 - **Always verify labels exist** before using them: `gh label list`

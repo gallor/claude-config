@@ -48,6 +48,7 @@ Guidelines for good bullets:
 - **Lead with substance.** What changed and why it mattered, not process narration ("ran the tests" is only worth a bullet if the outcome mattered).
 - **Fold the ticket and PR into the bullets** where natural, e.g. "Opened PR #123 addressing PROJ-456" — the header already carries repo/branch, so bullets carry the work.
 - **3–6 bullets is typical.** A tiny change might be one bullet; don't pad.
+- **Backtick-wrap any `<...>` placeholder or angle-bracket token** (e.g. `` `<branch>` ``, `` `<repo>/<file>` ``). A bare `<branch>` reads as an unclosed XML tag when `publish-dailylog` converts the file to Confluence storage format and silently breaks the wiki push. Wrapping it in backticks makes it valid; it also renders as code, which is what you meant anyway.
 
 Hold this draft as a plain list of bullet strings, plus the repo, branch, and date from Step 1. You'll pass all of it to the subagent.
 
@@ -104,9 +105,11 @@ Rules, in order:
 
 4. **Deduplicate against what's already under that repo/branch header, across ALL days, not just today.** Before writing a bullet, check whether the same information is already recorded in any existing bullet for this repo+branch (today or earlier days). "Same information" is semantic, not string-identical: "Opened PR #123" and "Created PR #123 for the deadlock fix" are the same fact — skip the new one. A bullet that adds genuinely new detail (a follow-up commit, a review addressed, a new test) is not a duplicate. When unsure, prefer skipping over duplicating; a missing near-duplicate is cheaper than a cluttered log.
 
-5. **Append surviving bullets** under the correct H3, as `- ` list items, in the order given. Leave all other content untouched — never rewrite or reorder existing entries.
+5. **Backtick-wrap any bare `<...>` angle-bracket token in every surviving bullet** before writing it. A token like `<branch>`, `<repo>`, or `path/<name>` written bare breaks the downstream `publish-dailylog` sync (Confluence converts the file to XML storage format and reads `<branch>` as an unclosed tag). Wrap the whole token in single backticks (`<branch>` → `` `<branch>` ``). If the token is already inside a backticked span, leave it alone. This applies whether the bullet came from the caller or you.
 
-6. **Report** which bullets were appended and which were dropped as duplicates, so the caller can relay it.
+6. **Append surviving bullets** under the correct H3, as `- ` list items, in the order given. Leave all other content untouched — never rewrite or reorder existing entries.
+
+7. **Report** which bullets were appended and which were dropped as duplicates, so the caller can relay it.
 
 ## Step 4 — Relay the result
 

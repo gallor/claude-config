@@ -139,6 +139,8 @@ If there are new files, stage them explicitly by name. **Never use `git add -A` 
 
 ## Phase 5: Respond to Comments on GitHub
 
+**Reply to each comment on its own thread — never post a single summary comment.** Every response must go inline on the specific review comment it addresses (via the `comments/{comment_id}/replies` endpoint), so the reviewer sees the reply in the thread next to the code and line they commented on. Do **not** collapse the responses into one aggregated comment on the PR conversation (`gh pr comment` / the issues `comments` endpoint) — that divorces each answer from the code it refers to and forces the reviewer to cross-reference. One review comment → one threaded reply.
+
 For each review comment, respond on GitHub based on how it was addressed. All `gh` calls in this phase must source `gh-env.sh` first (GHE support), and `gh api` should use an exported `GH_HOST` rather than `$GH_HOST_FLAG` (which expands incorrectly):
 
 ```bash
@@ -212,6 +214,7 @@ Only re-request from reviewers whose feedback was fully addressed (all their thr
 ## Important Notes
 
 - Always get user sign-off on the plan before making any code changes.
+- Reply to each review comment on its own thread (inline). Never aggregate responses into a single summary comment on the PR.
 - When in doubt about a reviewer's intent, ask the user rather than guessing.
 - Never resolve a thread where the user disagreed with the reviewer.
 - If a reviewer comment doesn't require a code change (e.g., a question or a "nit" the user wants to skip), that's fine — just handle the GitHub response appropriately.

@@ -9,17 +9,21 @@ Beginning work on any GitHub issue (a freshly filed one or an already-existing o
 - For `src/`-layout editable-install repos, set `PYTHONPATH="$PWD/src"` in the worktree rather than re-running `pip install -e .` (see the `cp-git-worktree` skill).
 - If `EnterWorktree` is genuinely unavailable, say so explicitly and fall back to an in-place branch — never silently edit issue work in the repo root.
 
+## Tooling: prefer the `git-rw` MCP server
+
+Prefer the `git-rw` MCP tools (`mcp__git-rw__*`) for all issue and PR work: `issue_write` (create/update), `issue_read`, `sub_issue_write`, `add_issue_comment`, `search_issues`, `list_issues`, `list_issue_types`, `get_label`. Fall back to the `gh` CLI only when the MCP server is unavailable for the session, or when an operation has no MCP equivalent (label listing and label creation are the main gaps). Every MCP tool takes explicit `owner`/`repo` params, which replace `gh`'s `--repo owner/repo` flag.
+
 ## Labels
 
-- **Always verify labels exist** before using them: `gh label list`
-- Create missing labels before issue creation: `gh label create "name" --description "..." --color "HEXCODE"`
-- `gh issue create --label "nonexistent"` will fail with exit code 1
+- **Always verify labels exist** before using them. Check a single label with `mcp__git-rw__get_label`; list all labels with `gh label list` (no MCP equivalent for listing).
+- **Creating a label has no MCP equivalent**, so use `gh label create "name" --description "..." --color "HEXCODE"`.
+- Applying a nonexistent label fails: `issue_write` with an unknown label errors, and `gh issue create --label "nonexistent"` fails with exit code 1. Create the label first.
 
 ## Sub-Issues (GHE 3.18+)
 
 Use the `/sub-issue <parent-number>` skill to create and link sub-issues.
 
-The `gh` CLI does not have native `--parent` support. Use the REST API.
+Prefer `mcp__git-rw__sub_issue_write` (method `add`) to link a child under a parent. The `gh` CLI has no native `--parent` support; if you fall back to `gh`, use the REST API.
 
 ### When to Use Sub-Issues
 
@@ -38,17 +42,23 @@ The `gh` CLI does not have native `--parent` support. Use the REST API.
 
 ### Workflow
 
-1. Create the parent issue first
-2. Create child issues
-3. Link via API:
-   ```bash
-   # Get the child's numeric ID (not the issue number)
-   sub_id=$(gh api "repos/{owner}/{repo}/issues/${ISSUE_NUM}" --jq '.id')
+1. Create the parent issue first (`mcp__git-rw__issue_write`, method `create`)
+2. Create the child issues (`mcp__git-rw__issue_write`, method `create`)
+3. Link each child under the parent with `mcp__git-rw__sub_issue_write`:
+   - `sub_issue_id` is the child's **numeric ID**, not its issue number. Fetch it with `mcp__git-rw__issue_read` (method `get`); it is the `id` field of the response.
+   - Call `sub_issue_write` with `method="add"`, `issue_number=<parent number>`, `sub_issue_id=<child numeric id>`.
+   - Cross-repo linking works because IDs are global: create the child with the dependency's `owner`/`repo`, then link it under the parent.
 
-   # Link as sub-issue — use -F (not -f) to send as integer
-   gh api "repos/{owner}/{repo}/issues/${PARENT_NUM}/sub_issues" \
-     --method POST -F sub_issue_id="${sub_id}"
-   ```
+**`gh` fallback** (MCP server unavailable):
+
+```bash
+# Get the child's numeric ID (not the issue number)
+sub_id=$(gh api "repos/{owner}/{repo}/issues/${ISSUE_NUM}" --jq '.id')
+
+# Link as sub-issue: use -F (not -f) to send as integer
+gh api "repos/{owner}/{repo}/issues/${PARENT_NUM}/sub_issues" \
+  --method POST -F sub_issue_id="${sub_id}"
+```
 
 - `-f` sends string values, `-F` sends integers. The sub-issues API requires integer `sub_issue_id`.
 
@@ -60,7 +70,7 @@ File issues in the repo where the **code** lives, not where it's consumed. If an
 
 When the user asks to investigate an internal dependency (e.g., "check ~/git/chippy for X"):
 - Analyze the dependency code in its own repository
-- If issues are found, **file them in that dependency's repo** using `--repo owner/repo`
+- If issues are found, **file them in that dependency's repo** by passing that repo's `owner`/`repo` to `mcp__git-rw__issue_write` (or `gh issue create --repo owner/repo` as fallback)
 - Do not file upstream code issues in the downstream consumer's repo
 - Link back to the downstream context where relevant (e.g., "affects simple-services apps_up_v2")
 
@@ -68,7 +78,7 @@ When the user asks to investigate an internal dependency (e.g., "check ~/git/chi
 
 When auditing a codebase and findings span multiple repos:
 - Create a **parent tracking issue** in the primary repo being audited
-- File each finding in the repo that owns the code, using `--repo owner/repo`
+- File each finding in the repo that owns the code, passing that repo's `owner`/`repo` to `mcp__git-rw__issue_write` (or `gh ... --repo owner/repo` as fallback)
 - If the finding directly blocks the parent's goal, **link it as a sub-issue** (cross-repo linking works — IDs are global)
 - If the finding is tangential, create a standalone issue and reference the parent in the body
 - Always reference cross-repo issues with `owner/repo#number` syntax in the parent body

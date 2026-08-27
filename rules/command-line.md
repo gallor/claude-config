@@ -1,9 +1,10 @@
 # Command Line Conventions
 
 - Use `rg` for terminal searches. For compressed files (`.zst`, `.gz`, etc.), use `rg -z` — it parallelizes decompression across files internally, making it ~2x faster than `zstd -dc | rg` on 2+ files and dramatically faster at scale. Single-file performance is comparable either way.
-- Use `gh` for GitHub interactions (PRs, issues, repos, etc.). See `rules/github-issues.md` for issue creation conventions and the `/sub-issue` skill.
-- When the user provides a `git.drwholdings.com` link, always use `gh` to access that information (PRs, issues, etc.).
-- **Never use `gh pr edit`** — it issues a GraphQL mutation that fails in our GHE environment. Use the REST API (`gh api`) instead. Map the `gh pr edit` flag to its REST endpoint (owner/repo from `gh repo view --json nameWithOwner --jq .nameWithOwner`; keep `GH_HOST` exported for GHE):
+- **Prefer the `git-rw` MCP server for all GitHub interactions** (PRs, issues, reviews, comments, repos, branches, files, releases, tags, search). Reach for the `mcp__git-rw__*` tools first; fall back to the `gh` CLI only when the MCP server is unavailable (its tools aren't listed for the session) or a needed operation has no MCP equivalent. See `rules/github-issues.md` for issue conventions and the `/sub-issue` skill.
+- When the user provides a `git.drwholdings.com` link, access it via the `git-rw` MCP tools (e.g. `pull_request_read`, `issue_read`), falling back to `gh` if the MCP server is unavailable.
+- Editing a PR (title, body, reviewers, base, draft, state) goes through `mcp__git-rw__update_pull_request`, which works correctly in our GHE environment (no GraphQL-mutation workaround needed).
+- **Only when falling back to `gh`: never use `gh pr edit`** — it issues a GraphQL mutation that fails in our GHE environment. Use the REST API (`gh api`) instead. Map the `gh pr edit` flag to its REST endpoint (owner/repo from `gh repo view --json nameWithOwner --jq .nameWithOwner`; keep `GH_HOST` exported for GHE):
 
   | `gh pr edit` flag | REST replacement |
   |-------------------|------------------|

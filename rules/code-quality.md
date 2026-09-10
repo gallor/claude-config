@@ -109,6 +109,7 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 
 ## PR Descriptions
 
+- **Always link the issue the PR closes with `Closes #<number>`** (e.g., `Closes #526`) in the PR body, so the issue auto-closes on merge. For an issue in another repo, use `Closes owner/repo#<number>`. Omit only when the PR genuinely has no associated issue.
 - Describe what the code does relative to the base branch, not how it evolved during development
 - Incremental changes made during a session (e.g., "changed X to Y", "removed redundant copy") should not appear as separate bullets — they're implementation details, not features
 - Benchmark numbers need multiple runs; single-run speedups vary ±5%. Round to one decimal.

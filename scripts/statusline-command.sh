@@ -29,10 +29,10 @@ status_parts+=("${CYAN}${short_dir}${RESET}")
 # Git status (if in git repo)
 if git -C "$cwd" rev-parse --git-dir >/dev/null 2>&1; then
     branch=$(git -C "$cwd" branch --show-current 2>/dev/null || echo "detached")
-    
+
     # Get git status
     git_status=$(git -C "$cwd" --no-optional-locks status --porcelain 2>/dev/null)
-    
+
     if [ -n "$git_status" ]; then
         # Has changes (yellow)
         status_parts+=("${YELLOW}${branch}${RESET}")

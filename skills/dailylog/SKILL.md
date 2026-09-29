@@ -44,10 +44,11 @@ Write the entry as a small set of bullets. Draw from **both** what you did this 
 
 Guidelines for good bullets:
 
+- **Log the work, not the workflow.** Capture only the substance of the task: the issues investigated, the root causes found, the solutions implemented, and the conclusions reached. Exclude trivial, generic actions that every task involves and that carry no information about *this* task — running review skills, committing changes, pushing branches, opening/updating a PR as a mechanical step, running tests, formatting. These are process, not work; a reader learns nothing about what was actually done from "pushed the branch" or "ran `/review`".
 - **One fact per bullet, one sentence each.** Past tense, active voice ("Fixed the deadlock in the drain loop", not "This PR fixes...").
-- **Lead with substance.** What changed and why it mattered, not process narration ("ran the tests" is only worth a bullet if the outcome mattered).
-- **Fold the ticket and PR into the bullets** where natural, e.g. "Opened PR #123 addressing PROJ-456" — the header already carries repo/branch, so bullets carry the work.
-- **3–6 bullets is typical.** A tiny change might be one bullet; don't pad.
+- **Lead with substance.** What changed and why it mattered, not process narration. If a normally-trivial action *is* the finding (e.g. a test run surfaced a real bug, a review caught a design flaw you then addressed), log the finding and its consequence, not the action.
+- **Fold the ticket and PR reference into a substantive bullet** where natural, e.g. "Fixed the drain-loop deadlock by ordering lock acquisition (PR #123, PROJ-456)" — the PR/ticket is an anchor on real work, never a bullet of its own.
+- **1–4 bullets is typical.** A tiny change might be one bullet; don't pad, and don't manufacture bullets out of process steps to reach a count.
 - **Backtick-wrap any `<...>` placeholder or angle-bracket token** (e.g. `` `<branch>` ``, `` `<repo>/<file>` ``). A bare `<branch>` reads as an unclosed XML tag when `publish-dailylog` converts the file to Confluence storage format and silently breaks the wiki push. Wrapping it in backticks makes it valid; it also renders as code, which is what you meant anyway.
 
 Hold this draft as a plain list of bullet strings, plus the repo, branch, and date from Step 1. You'll pass all of it to the subagent.
@@ -83,8 +84,7 @@ The file uses this structure. Preserve it exactly:
 ## 2026-08-03
 
 ### chippy — fix/PROJ-456-drain-deadlock
-- Fixed the deadlock in the drain loop by ordering lock acquisition.
-- Opened PR #123 addressing PROJ-456.
+- Fixed the deadlock in the drain loop by ordering lock acquisition (PR #123, PROJ-456).
 
 ### core_python — main
 - Bumped the pinned ormsgpack version to 1.5.0.

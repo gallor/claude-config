@@ -25,7 +25,7 @@ set -euo pipefail
 CLAUDE_DIR="$HOME/.claude"
 CONFIG_JSON="$HOME/.claude.json"
 CONFIG_REPO_DIR="$HOME/code/claude-config"
-CONFIG_REPO_REMOTE="git@git.drwholdings.com:gallor/claude-config.git"
+CONFIG_REPO_REMOTE="git@github.com:gallor/claude-config.git"
 MANIFEST_NAME=".claude-symlinks.manifest"
 
 # Runtime/cache/credential state that must NOT be copied. Paths are relative to

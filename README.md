@@ -13,7 +13,7 @@ stack. It's here to **browse for ideas**, not to clone and run.
 | `agents/` | 19 subagent definitions (personas), each pinned to a model and scoped to a domain (perf trio, security, C++, debugging, review, docs, …) |
 | `skills/` | 20 slash-command workflows (`/review`, `/tdd`, `/incident`, `/kpop`, `/flume`, language-pro helpers, …) and shared `lib/` scripts |
 | `commands/` | Standalone slash commands |
-| `scripts/` | Statusline + tmux integration helpers |
+| `scripts/` | Statusline + tmux integration helpers, plus `claude-migrate.sh` (move Claude Code state between machines) |
 | `settings.example.json` | The structure of my `settings.json` (model pinning, hooks, plugins, agent-teams flag) with all tokens redacted |
 
 ## How to read it

@@ -6,9 +6,22 @@ user-invocable: true
 
 # Track Epic
 
-Scan a GitHub epic's sub-issues and print a one-shot status table. Sub-issues are discovered dynamically via the sub-issues API (cross-repo aware), so this works for any epic, not a hardcoded one.
+Scan a GitHub epic's sub-issues and print a one-shot status table. Sub-issues are discovered dynamically via the sub-issues API, **recursively** (sub-issues of sub-issues, to a depth cap, with cycle guards) and cross-repo aware, so this works for any epic, not a hardcoded one. Nested rows are indented with `↳` and appear directly under their parent.
 
 The heavy lifting is a script (`epic_status.py`, in this skill's directory) that does all the GitHub scanning and renders the table. This skill wraps it: resolve the epic reference, fill in the agent column from live agents, run the script, present the output.
+
+## Execution — Haiku does the scanning; the caller only gathers the agent list
+
+Reading ticket state is not reasoning work, so push the scan + render onto Haiku. But **one step must stay in the calling session: `ListAgents` from inside a subagent cannot see the peer sessions** (verified — a Haiku subagent saw only its own team's review agents, so the Agent column came back all `—`). Only the top-level session sees the peer `Tortilla …` / `issue #…` sessions. So split the work:
+
+**Calling session (does the minimum that needs the top-level vantage):**
+1. Run **Step 3** (`ListAgents` → `--agent N=Name` args) here. This is the one piece the subagent can't do.
+2. Spawn a Haiku subagent — **`Agent`** tool, `subagent_type: "general-purpose"`, **`model: "haiku"`** — passing it: the epic reference, the **prebuilt `--agent` args from step 1**, and whether `--quiet-if-unchanged` was requested. Instruct it to run **Steps 1, 2, and 4** (resolve the ref, set the gh host, run the script with those exact `--agent` args) and return the script output verbatim.
+3. **Relay the subagent's table verbatim**, adding only the optional one-line "changed since last check" note.
+
+The subagent does the GitHub scanning and rendering (the bulk of the work, and the only part with any token weight); the caller does just the single `ListAgents` call. Skip step 1 and the Agent column simply shows `—`.
+
+Steps 1–4 (Step 3 is run by the caller; Steps 1, 2, 4 are the subagent's brief):
 
 ## Step 1 — Resolve the epic reference
 

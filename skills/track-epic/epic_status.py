@@ -138,6 +138,66 @@ def cache_path(owner: str, repo: str, epic: str) -> str:
     return os.path.join(d, f"{owner}-{repo}-{epic}.sig")
 
 
+MAX_DEPTH = 6  # guard against pathological / cyclic sub-issue trees
+
+
+def render_row(
+    sub: dict,
+    s_owner: str,
+    s_repo: str,
+    depth: int,
+    agents: dict,
+    pr_cache: dict,
+    root: tuple[str, str],
+) -> str:
+    """Render one table row for a sub-issue, indented by nesting depth."""
+    n = sub["number"]
+    key = (s_owner, s_repo)
+    if key not in pr_cache:
+        pr_cache[key] = (
+            api(f"repos/{s_owner}/{s_repo}/pulls?state=all&per_page=100") or []
+        )
+    pr = find_pr(pr_cache[key], n)
+    agent = agents.get(n, "")
+    state = rollup(sub["state"], pr, s_owner, s_repo, agent)
+    label = f"#{n}" if (s_owner, s_repo) == root else f"{s_owner}/{s_repo}#{n}"
+    indent = "↳ " * (depth - 1)  # depth 1 = top-level (no indent)
+    t = sub["title"]
+    t = t if len(t) <= 46 else t[:44] + "…"
+    prcell = f"#{pr['number']}{' (draft)' if pr.get('draft') else ''}" if pr else "—"
+    return f"| {label} | {indent}{t} | {state} | {prcell} | {agent or '—'} |"
+
+
+def walk(  # noqa: PLR0913 - a recursive traversal legitimately threads its state
+    owner: str,
+    repo: str,
+    number,
+    depth: int,
+    visited: set,
+    rows: list,
+    pr_cache: dict,
+    agents: dict,
+    root: tuple[str, str],
+) -> None:
+    """Depth-first append rows for every sub-issue under (owner, repo, number).
+
+    Recurses into sub-issues of sub-issues (cross-repo aware), guarding against
+    cycles via `visited` and runaway depth via `MAX_DEPTH`.
+    """
+    if depth > MAX_DEPTH:
+        return
+    subs = api(f"repos/{owner}/{repo}/issues/{number}/sub_issues") or []
+    for sub in subs:
+        s_owner, s_repo = repo_of(sub, (owner, repo))
+        n = sub["number"]
+        key = (s_owner, s_repo, n)
+        if key in visited:
+            continue
+        visited.add(key)
+        rows.append(render_row(sub, s_owner, s_repo, depth, agents, pr_cache, root))
+        walk(s_owner, s_repo, n, depth + 1, visited, rows, pr_cache, agents, root)
+
+
 def main() -> None:
     """Fetch state and print the epic status table.
 
@@ -173,25 +233,12 @@ def main() -> None:
         )
         return
 
-    # One PR fetch per distinct sub-issue repo.
+    # Depth-first over the sub-issue tree (sub-issues of sub-issues included).
+    # One PR fetch per distinct repo is cached inside render_row.
     pr_cache: dict[tuple[str, str], list] = {}
-    rows = []
-    for sub in subs:
-        n = sub["number"]
-        s_owner, s_repo = repo_of(sub, (owner, repo))
-        key = (s_owner, s_repo)
-        if key not in pr_cache:
-            pr_cache[key] = (
-                api(f"repos/{s_owner}/{s_repo}/pulls?state=all&per_page=100") or []
-            )
-        pr = find_pr(pr_cache[key], n)
-        agent = agents.get(n, "")
-        state = rollup(sub["state"], pr, s_owner, s_repo, agent)
-        label = f"#{n}" if (s_owner, s_repo) == (owner, repo) else f"{s_owner}/{s_repo}#{n}"
-        t = sub["title"]
-        t = t if len(t) <= 46 else t[:44] + "…"
-        prcell = f"#{pr['number']}{' (draft)' if pr.get('draft') else ''}" if pr else "—"
-        rows.append(f"| {label} | {t} | {state} | {prcell} | {agent or '—'} |")
+    rows: list[str] = []
+    visited: set = {(owner, repo, int(epic))}
+    walk(owner, repo, epic, 1, visited, rows, pr_cache, agents, (owner, repo))
 
     # Signature excludes the timestamp so unchanged state is a quiet tick.
     signature = "\n".join(rows)
@@ -217,6 +264,7 @@ def main() -> None:
     print("\n".join(rows))
     print(
         "\n_States: todo → working → PR → kaa-reviewed → merged. "
+        "`↳` marks a nested sub-issue (of the row above). "
         "Agent is filled from --agent mappings (name↔issue-number)._"
     )
 

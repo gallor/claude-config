@@ -214,6 +214,8 @@ ANALYSIS_DIR=$(~/.claude/skills/lib/static-analysis.py origin/{baseRefName} {rep
 | `griffe` | `compat` | `ImportError`/`ModuleNotFoundError` per-package; skipped packages logged. Python-specific; when griffe is unavailable the `compat` agent uses the fallback checklist + language-agnostic blast-radius search — see `compat-agent-instructions.md` §1 (single source; do not duplicate the checklist here). |
 | `cargo clippy` (JSON) | `code`, `security` | No `Cargo.toml` or no `.rs` changes; diff-aware (only findings on PR-touched lines) |
 
+**Missing tools are a coverage gap, not a clean result.** A tool that reports `skipped: true` with `not installed` never ran, so silence from it proves nothing. Tell the affected aspect agents that its machine check is absent (so they do not assume it passed), and list the gap under *Coverage* in the step-7 summary. kaa's CI image installs only `griffe`, `ruff`, and `towncrier` (`pip3 install`), so `bandit` and `cargo clippy` are always absent there.
+
 **Do NOT read `static-analysis.json` in the main session.** Exception: read the `towncrier` field to determine the review event (step 7).
 
 **Do NOT predict CI outcomes.** Never state or imply that a finding "would fail CI", "breaks the build", or "the lint job will reject this" — kaa cannot know a given repo's CI pipeline (a rule selected in `pyproject.toml` is not necessarily run in CI; chippy, for example, gates lint via pre-commit which has no ruff hook, so ruff violations do not fail its CI). CI status is visible to the author independently and authoritatively in the checks UI; a review that predicts it adds nothing and is often wrong. Report a lint finding on its own merits — "ruff `SIM117`: nested `with` can be merged" — not as a CI consequence. This also governs severity: a lint/style finding is a `[nit]` or `[suggestion]` on its own terms (see event tiers), never elevated because it is imagined to block CI.
@@ -263,6 +265,7 @@ Other aspects (`perf`, `security`, `compat`, etc.) are language-agnostic and spa
 - Each agent reviews only their domain
 - **Agent briefs (MUST read):** the per-aspect instructions each spawned agent must receive (Claims-vs-Hypotheses discipline, dedup, prior-reviews, engage-open-threads, approach-fit, perf gating, test-cannot-fail, etc.) live in **`skills/review/agent-prompts.md`**. **You MUST read that file before spawning any agent** and inject the relevant sections into each brief — it is the source of truth for what every reviewer subagent is told; the orchestrator does not execute those rules itself. Spawning agents without it produces an under-instructed review.
 - **Aspect-join protocol — a single slow aspect must never sink the run.** Prefer the full set of findings (contradiction detection wants every aspect), but proceeding with a partial panel beats waiting unbounded on one straggler. Poll the panel non-blocking on a loop (`TaskOutput` with `block=false`), and each pass also check for `SendMessage`s from aspect agents (an agent that finds a serious issue pushes a message to `main` — see agent-prompts.md). Give essential aspects (`code`, `security`, `premise`, `compat` — can be `[critical]`/`REQUEST_CHANGES`) more grace than nice-to-haves (`docs`, `simplify`, `perf`, `tests`); a straggler that already pushed a `[critical]`/`[issue]` is protected regardless of tier — capture its message-carried finding into your working set so it survives even if that aspect never returns its full report. When a straggler exceeds a reasonable grace, stop awaiting it and triage with the findings in hand, noting the incomplete aspects in the presented summary (step 7). Present the partial review rather than losing everything to one slow agent.
+- **Background-agent ceiling (print-mode runs).** When the orchestrator runs as `claude --print` (kaa's CI invocation), export `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` before launching it. Otherwise Claude Code terminates a background aspect agent 600 s after the orchestrator ends its turn to wait on it, and that aspect returns no report (kaa run 9205179, claude-config#175). An aspect that returns no report is **incomplete**, not clean: name it in the step-7 *Coverage* line.
 - **User override:** if the user explicitly says to proceed early (e.g. "just go", "don't wait"), triage with available findings and note pending agents.
 
 ### 6. Triage and aggregate
@@ -394,6 +397,10 @@ Presentation format:
 2. 🔵 **[suggestion]** Description — lines 78-80
    detail (may include ```suggestion block```)
 ```
+
+**Run context footer (required).** End the presented summary with:
+- **Orchestrator model:** the model this review is running on. The panel is calibrated for an Opus-class orchestrator (kaa runs `vertex-claude-opus-5-5`); aspect agents use their frontmatter model. If you are not Opus-class, say so, and note that contradiction detection and the premise verdict are lower-confidence.
+- **Coverage:** every static tool skipped (with its reason), every aspect that returned no report, and any `[question]` left unresolved. Write `none` when there are none. Never omit this line.
 
 The verdict is a *presented judgment*, not a posted GitHub review event — it tells the user where the change stands. User actions curate the local summary (nothing here posts to the PR):
 

@@ -20,16 +20,43 @@ for GitHub Enterprise.
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
+from typing import Any
 
 KAA_LOGIN = "srv-chippy"  # GHE review bot; harmless (never matches) elsewhere
 CLOSES_RE_TMPL = r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#{n}\b"
 
 
-def api(path: str):
-    """Return parsed JSON from `gh api <path> --paginate`, or None on failure."""
+class _ApiError:
+    """Falsy sentinel marking a `gh` call that failed (non-zero exit).
+
+    Distinct from an empty-but-successful response (`None`/`[]`): a 401 or
+    network error must not be reported as "the epic has no sub-issues". It is
+    falsy so existing `api(...) or []` call sites keep soft-failing on nested
+    fetches, while callers that must fail loud test for it with `isinstance`.
+    """
+
+    __slots__ = ("stderr",)
+
+    def __init__(self, stderr: str) -> None:
+        """Keep `gh`'s stderr so the caller can surface the real cause."""
+        self.stderr = stderr
+
+    def __bool__(self) -> bool:
+        """Report falsy so `api(...) or []` degrades gracefully."""
+        return False
+
+
+def api(path: str) -> Any:
+    """Return parsed JSON from `gh api <path> --paginate`.
+
+    Returns `None` on an empty but successful response, and an `_ApiError`
+    sentinel (falsy) when the `gh` call itself fails (non-zero exit, e.g. a
+    401 from an expired token) so callers can tell "no data" from "no auth".
+    """
     r = subprocess.run(
         ["gh", "api", "--paginate", path],
         capture_output=True,
@@ -37,7 +64,7 @@ def api(path: str):
         check=False,
     )
     if r.returncode != 0:
-        return None
+        return _ApiError(r.stderr.strip())
     out = r.stdout.strip()
     if not out:
         return None
@@ -221,6 +248,24 @@ def main() -> None:
     now = subprocess.run(
         ["date", "+%Y-%m-%d %H:%M"], capture_output=True, text=True, check=False
     ).stdout.strip()
+
+    # Fail loud: a failed fetch (e.g. 401 from an expired gh token) must not be
+    # silently rendered as "the epic has no sub-issues".
+    failure = next(
+        (e for e in (subs, epic_issue) if isinstance(e, _ApiError)), None
+    )
+    if failure is not None:
+        host = os.environ.get("GH_HOST") or "github.com"
+        print(f"### Epic {owner}/{repo}#{epic} — {now}", file=sys.stderr)
+        print(
+            "ERROR: GitHub API call failed, so sub-issues could NOT be fetched "
+            "(this is NOT the same as the epic having none).\n"
+            f"gh said: {failure.stderr or '(no stderr)'}\n"
+            "The gh token for this host is most likely invalid or expired. "
+            f"Re-authenticate with: gh auth login -h {host}",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
 
     title = epic_issue["title"] if epic_issue else ""
     if not subs:

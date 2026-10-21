@@ -13,3 +13,6 @@ settings.json
 
 # read-pr skill build artifacts — local only
 skills/read-pr-workspace/
+
+# kaa/review worktrees and session state created by Claude Code
+.claude/

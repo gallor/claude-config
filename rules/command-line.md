@@ -25,3 +25,10 @@
 ## Local Environment
 
 - Local git repositories are stored in `~/code/`.
+
+## Git Worktrees — only edit your own
+
+- **Only edit the worktree that is the session's present working directory.** Never make file edits, and never run git mutations (`commit`, `mv`, `rm`, `push`, `add`), in a *different* git worktree — even one reachable by absolute path or `git -C`. Another Claude session is often attached to that worktree; mutating it races with that session and can commit its in-progress work or clobber its state.
+- **To change another worktree, message its agent.** Identify the session attached to it with `ListAgents`, then ask that session (via `SendMessage`) to make the change — it owns that working directory and should make the edit itself.
+- **If no session is attached to that worktree**, do not edit it silently. Tell the user there is no agent on that worktree and ask whether they still want the change made (and how — e.g. you switch into it, or they start a session there).
+- **Reading** another worktree for context is fine; **mutating** it is not.

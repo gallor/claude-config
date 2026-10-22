@@ -130,6 +130,14 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 
 - Never use em dashes. Use commas, semicolons, parentheses, or separate sentences instead.
 
+## Documentation Files (mkdocs / Zensical)
+
+For any repo that publishes docs with a site generator (mkdocs/Material, Zensical):
+
+- **Published markdown lives in the configured docs dir** (`docs/` by default), not scattered beside code. A doc meant for the site must be under that dir AND wired into the generator's navigation (`nav` in `mkdocs.yml`, the nav config in `zensical.toml`). A `.md` placed elsewhere (e.g. `ci/`, a package subdir) is a repo-only file that never publishes. If a doc should be published, put it in the docs dir from the start.
+- **Never downgrade framework admonitions to blockquotes.** `!!! note/tip/warning` (and `>` callouts in Zensical) are the generator's syntax and render as styled callouts on the published site. Do not convert `!!!` to a `>` blockquote because it "renders as literal text on GitHub" — the published site, not the GitHub blob view, is the target surface.
+- **Verify with a strict build** (`mkdocs build --strict`, `zensical build`) before shipping: it catches a page missing from nav and links to files outside the docs dir. For a repo file that is intentionally not published (e.g. a sibling `README.md`), link to it with an absolute URL rather than a relative path the build will flag.
+
 ## Inline Comments
 
 Minimize inline comments. Code should be self-documenting through clear naming and structure.

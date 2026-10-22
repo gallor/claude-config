@@ -36,6 +36,14 @@ Review code changes using specialized agents, or summarize issue discussions.
 
 > **Don't re-narrate a settled conclusion.** State each conclusion **once**, then act on it — do not restate it in prose on later turns. Generated output is the dominant cost of a review on both axes at once (wall-clock *and* spend — same tokens, two units), so re-explaining a decision you already made is pure waste that never reaches the presented review. Observed (chippy#1814, a trivial docs review): the model wrote "this is a docs-only, trivial diff → inline path" **three times** across the run — a conclusion `triage.py` had already returned deterministically. The narration that earns its place is the **review summary** (verdict + findings) and the *first* statement of a routing/triage decision (audit trail); the 2nd and 3rd restatements are the target. This is the output-token twin of the tool-call rule above — both are narration spending tokens for nothing.
 
+### 0. Preflight: orchestrator model check
+
+The panel is calibrated for an Opus-class orchestrator. Before anything else, identify the model this session is running on from your own system context (the model ID you were given). If it is **not** an Opus model, make the first line of your output this warning, then continue the review normally:
+
+> ⚠️ **Model mismatch:** `/review` expects an Opus-class orchestrator, but this session is running `<model id>`. Contradiction detection and the premise verdict are lower-confidence; re-run from an Opus session for a calibrated review.
+
+Do not block on it: the warning is informational. If the session is Opus, print nothing extra. Repeat the mismatch in the run-context footer (step 7).
+
 ### 1. Parse arguments
 
 Extract from `$ARGUMENTS`: aspects (known keywords + `all`), a number reference (PR or issue), and repo. Bare integer infers repo from cwd.

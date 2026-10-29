@@ -28,7 +28,12 @@ import subprocess
 import sys
 import time
 
-KAA = "srv-chippy"
+# kaa now submits its review as the GitHub App `kaa[bot]`; older PRs may still
+# carry reviews under the `srv-chippy` service account, so match either on the
+# read side. The reviewer *request* still routes through the service account:
+# requesting `srv-chippy` (re)triggers a kaa review, which then posts as `kaa[bot]`.
+KAA_LOGINS = frozenset({"srv-chippy", "kaa[bot]"})
+KAA_REQUEST = "srv-chippy"
 DEFAULT_BUDGET_SEC = 540  # keep under the 600s Bash-tool cap; caller resumes
 POLL_INTERVAL_SEC = 45
 
@@ -58,7 +63,7 @@ def _api_raw(path: str, extra: list[str] | None = None) -> tuple[int, str, str]:
 def kaa_reviews(owner: str, repo: str, pr: str) -> list[dict]:
     """Return all reviews on the PR authored by the kaa bot."""
     revs = _api(f"repos/{owner}/{repo}/pulls/{pr}/reviews") or []
-    return [x for x in revs if (x.get("user") or {}).get("login") == KAA]
+    return [x for x in revs if (x.get("user") or {}).get("login") in KAA_LOGINS]
 
 
 def baseline_id(owner: str, repo: str, pr: str) -> int:
@@ -70,7 +75,7 @@ def request_reviewer(owner: str, repo: str, pr: str) -> None:
     """Request srv-chippy as a reviewer (REST). A 422 (already requested) is fine."""
     _api_raw(
         f"repos/{owner}/{repo}/pulls/{pr}/requested_reviewers",
-        ["-X", "POST", "-f", f"reviewers[]={KAA}"],
+        ["-X", "POST", "-f", f"reviewers[]={KAA_REQUEST}"],
     )
 
 
@@ -78,7 +83,7 @@ def progress_present(owner: str, repo: str, pr: str) -> bool:
     """Whether kaa has an open `kaa-progress` 'reviewing…' comment on the PR."""
     comments = _api(f"repos/{owner}/{repo}/issues/{pr}/comments") or []
     return any(
-        (c.get("user") or {}).get("login") == KAA and "kaa-progress" in (c.get("body") or "")
+        (c.get("user") or {}).get("login") in KAA_LOGINS and "kaa-progress" in (c.get("body") or "")
         for c in comments
     )
 
@@ -96,7 +101,7 @@ def gather(owner: str, repo: str, pr: str, review: dict) -> str:
     mine = [
         c
         for c in comments
-        if (c.get("user") or {}).get("login") == KAA
+        if (c.get("user") or {}).get("login") in KAA_LOGINS
         and c.get("pull_request_review_id") == review["id"]
     ]
     out.append(f"\n=== INLINE COMMENTS ({len(mine)}) ===")

@@ -1,6 +1,6 @@
 ---
 name: start-work
-description: Begin work on a GitHub issue in an isolated git worktree, never in the repo root. Use this skill whenever the user wants to start, pick up, or begin working on an issue — triggers on phrases like "start work on #123", "let's work on issue 123", "pick up #123", "begin the fix for that issue", or when handed off from create-issue after filing a new issue. Resolves the issue, derives a branch name, and checks the work out into a worktree under .claude/worktrees/.
+description: Begin work on a GitHub issue in an isolated git worktree, never in the repo root. Use this skill whenever the user wants to start, pick up, or begin working on an issue — triggers on phrases like "start work on #123", "let's work on issue 123", "pick up #123", "begin the fix for that issue", or when handed off from create-issue after filing a new issue. Resolves the issue, derives a branch name, and checks the work out into a worktree under .claude/worktrees/, then builds a shared understanding of the problem and settles an approach (via grill-me) before implementing.
 user-invocable: true
 argument-hint: "[issue-number | owner/repo#number | url]"
 ---
@@ -14,6 +14,8 @@ Begin work on a GitHub issue by checking it out into an isolated git **worktree*
 ## Why this exists
 
 Starting issue work directly in the repo root mixes it with the working copy, risks clobbering other parallel work, and leaves no clean branch boundary. This skill makes "start work" mean "enter a worktree": one issue → one branch → one worktree directory. It is the entry point both for picking up an already-filed issue and for the handoff from `create-issue` after a new issue is filed.
+
+"Start work" also does **not** mean "start coding immediately." Once the worktree is ready, understand the problem and agree on an approach *before* implementing (the planning phase in Step 7) — a jump straight to a solution is the thing this skill is meant to prevent, not just an unisolated edit.
 
 ## Process
 
@@ -75,13 +77,31 @@ Prefix every subsequent command that imports the package with `PYTHONPATH="$PWD/
 
 Activate the project's conda env as usual (from the project `CLAUDE.md`, or the `<repo>-dev` convention).
 
-### Step 6 — Report and begin
+### Step 6 — Report the setup
 
-Report: the issue (number + URL), the branch name, and the worktree path now in effect. Confirm the session is working inside the worktree (`pwd` under `.claude/worktrees/`), then proceed with the actual work there.
+Report: the issue (number + URL), the branch name, and the worktree path now in effect. Confirm the session is working inside the worktree (`pwd` under `.claude/worktrees/`). **Stop here — do not start editing yet.** Move to the planning phase.
+
+### Step 7 — Understand the problem and plan before implementing
+
+Do not jump straight into a solution. First build a shared understanding of the problem and the candidate approaches, *then* implement.
+
+1. **Research (read-only).** Read the issue body and the relevant code/config so you can discuss the problem concretely. No edits in this step.
+2. **Invoke `/grill-me`.** Hand it the issue and what the research surfaced, and let it interview the user about the problem and candidate solutions, resolving each decision branch until the design is settled. The deliverable of this phase is an agreed approach, not code.
+
+**This phase is default-on but skippable.** Go straight to Step 8 when:
+- the user opts out (e.g. "just do it", "skip planning", "no need to plan"), or
+- the task is obviously trivial or mechanical (a typo, a one-line change, a rote/boilerplate edit) where there is nothing to grill.
+
+When you skip, say so in one line (e.g. "Trivial change — skipping the planning phase") so the user can redirect if they disagree.
+
+### Step 8 — Implement
+
+With the approach agreed (or the planning phase deliberately skipped), implement the change in the worktree.
 
 ## Guardrails
 
 - **Never start issue work in the repo root.** The whole point is isolation; if `EnterWorktree` is unavailable, say so explicitly rather than silently editing in place.
+- **Plan before you implement.** Once the worktree is ready, understand the problem and settle the approach via `/grill-me` (Step 7) before editing. Skip only for an explicit user opt-out or an obviously trivial change — never silently jump to a solution.
 - **Reuse, don't duplicate.** An existing branch/worktree/PR for the issue is the home — enter it rather than forking a parallel branch.
 - **Don't `pip install -e .` in the worktree** for `src/`-layout repos; use `PYTHONPATH` (Step 5).
 - **Confirm before starting on a closed issue** or on an existing PR's branch.

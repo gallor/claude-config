@@ -128,7 +128,7 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 
 ## Writing Style
 
-- Never use em dashes. Use commas, semicolons, parentheses, or separate sentences instead.
+- **Never use em dashes. This is a hard rule and a recurring miss, so re-read it before you ship any text.** It applies to ALL generated output, not just chat prose: docs, docstrings, code comments, commit messages, PR and issue bodies, newsfragments, and review comments all count. Replace with a comma, semicolon, colon, parentheses, or a separate sentence. Before you commit, push, or post anything, scan it for the `—` character and remove any you find; stray em dashes have slipped through repeatedly, so treat that final scan as mandatory, not optional.
 
 ## Documentation Files (mkdocs / Zensical)
 

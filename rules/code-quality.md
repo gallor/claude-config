@@ -93,13 +93,13 @@ Code that has been stable for years is usually stable *because* nobody needs to 
 git log --follow --format="%ai %h %s" <file> | head -5
 ```
 
-**Staleness filter** — skip filing if either holds:
+**Staleness filter**: skip filing if either holds:
 - **≤ 3 total commits** on the file (typically just initial import plus trivial touches), OR
 - **≥ 2 years** since the last commit
 
-**Correctness bugs are exempt** — a confirmed bug (wrong behavior, not just complexity) in stale code is still worth fixing, but as a *surgical one-line PR*, never bundled with a refactor.
+**Correctness bugs are exempt**: a confirmed bug (wrong behavior, not just complexity) in stale code is still worth fixing, but as a *surgical one-line PR*, never bundled with a refactor.
 
-**Mechanical fixes are exempt** — `ruff --fix` style sweeps are low-risk even on stale files; the staleness filter applies to complexity refactors and redesigns, not auto-fix cleanups.
+**Mechanical fixes are exempt**: `ruff --fix` style sweeps are low-risk even on stale files; the staleness filter applies to complexity refactors and redesigns, not auto-fix cleanups.
 
 Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When running tools like `ruff-plr` across a repo, use this filter to triage findings before turning them into issues.
 
@@ -111,13 +111,13 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 
 - **Always link the issue the PR closes with `Closes #<number>`** (e.g., `Closes #526`) in the PR body, so the issue auto-closes on merge. For an issue in another repo, use `Closes owner/repo#<number>`. Omit only when the PR genuinely has no associated issue.
 - Describe what the code does relative to the base branch, not how it evolved during development
-- Incremental changes made during a session (e.g., "changed X to Y", "removed redundant copy") should not appear as separate bullets — they're implementation details, not features
+- Incremental changes made during a session (e.g., "changed X to Y", "removed redundant copy") should not appear as separate bullets; they're implementation details, not features
 - Benchmark numbers need multiple runs; single-run speedups vary ±5%. Round to one decimal.
 
 ## Commit Messages
 
 - **Be succinct.** Default to a subject line alone (≤72 chars, imperative mood). Add a body only when the *why* isn't obvious from the diff.
-- When a body is warranted, keep it to a few short bullets or 1-2 sentences — not a paragraph per file. State what changed and why, not a change-by-change narration.
+- When a body is warranted, keep it to a few short bullets or 1-2 sentences, not a paragraph per file. State what changed and why, not a change-by-change narration.
 - Let `git commit -m "<subject>"` be the common case. Reserve multi-line bodies for genuinely non-obvious or cross-cutting changes.
 
 ## Newsfragments (Towncrier)
@@ -135,7 +135,7 @@ Applies to `@tech-debt-tracker` and to ad-hoc filing from the main session. When
 For any repo that publishes docs with a site generator (mkdocs/Material, Zensical):
 
 - **Published markdown lives in the configured docs dir** (`docs/` by default), not scattered beside code. A doc meant for the site must be under that dir AND wired into the generator's navigation (`nav` in `mkdocs.yml`, the nav config in `zensical.toml`). A `.md` placed elsewhere (e.g. `ci/`, a package subdir) is a repo-only file that never publishes. If a doc should be published, put it in the docs dir from the start.
-- **Never downgrade framework admonitions to blockquotes.** `!!! note/tip/warning` (and `>` callouts in Zensical) are the generator's syntax and render as styled callouts on the published site. Do not convert `!!!` to a `>` blockquote because it "renders as literal text on GitHub" — the published site, not the GitHub blob view, is the target surface.
+- **Never downgrade framework admonitions to blockquotes.** `!!! note/tip/warning` (and `>` callouts in Zensical) are the generator's syntax and render as styled callouts on the published site. Do not convert `!!!` to a `>` blockquote because it "renders as literal text on GitHub": the published site, not the GitHub blob view, is the target surface.
 - **Verify with a strict build** (`mkdocs build --strict`, `zensical build`) before shipping: it catches a page missing from nav and links to files outside the docs dir. For a repo file that is intentionally not published (e.g. a sibling `README.md`), link to it with an absolute URL rather than a relative path the build will flag.
 
 ## Inline Comments
